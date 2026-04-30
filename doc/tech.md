@@ -13,7 +13,7 @@
 | API 形式 | RESTful JSON API | シンプルで React との連携が容易 |
 | スケジューラ | sidekiq-cron | 週次の自動確定、リマインド、当日通知のスケジュール実行 |
 
-> **注意**: Devise / JWT は不要。ゆるい識別方式（Q18）を採用するため、一般メンバーの認証基盤は実装しない。Owner の Discord OAuth と Google OAuth のみサーバー側で管理する。
+> **注意**: Devise / JWT は不要。ゆるい識別方式（Q18）を採用し、Google/Discord 連携ユーザーのみ Cookie ベースのセッション管理を行う（Q40/Q41）。
 
 ### フロントエンド
 
@@ -26,7 +26,7 @@
 | カレンダー UI | カスタム実装 | Availability_Board の独自要件（集計表示、色分け、メンバー横並び）に対応 |
 | HTTP クライアント | Axios | API 通信の標準ライブラリ |
 | 国際化 | react-i18next | ロケール設定による記号・テキスト切り替え（Q30） |
-| ローカルストレージ | localStorage API | ユーザー選択の記憶（Q18） |
+| ローカルストレージ | localStorage API | ゆるい識別ユーザーの記憶（Q18） |
 
 ### 外部連携
 
@@ -36,9 +36,18 @@
 | Discord | discord.js v14+ | Bot 開発。Server Members Intent によるメンバーリスト取得、スラッシュコマンド、通知送信 |
 | 広告 | Google AdSense | 導入が容易で小規模サイトにも対応 |
 
-## 認証・識別方式
+## 認証・識別方式（2層構造）
 
-### 一般メンバー（ゆるい識別方式）
+認証レベルに応じた2層構造を採用する（Q40/Q41）。
+
+### 認証レベル一覧
+
+| レベル | 識別方法 | 対象 | デバイス間共有 | UI 表示 |
+|---|---|---|---|---|
+| ゆるい識別 | localStorage のみ | Google 未連携メンバー | 不可（デバイスごとに選択） | 名前のみ |
+| OAuth 識別 | HttpOnly Secure Cookie | Google 連携メンバー / Owner | 可（再認証で紐付け） | 名前 + 🔒 |
+
+### ゆるい識別（Google 未連携メンバー）
 
 パスワードや OAuth 認証は不要。以下のフローでユーザーを識別する:
 
@@ -48,7 +57,60 @@
 4. 選択したユーザーID を localStorage に保存 → 次回以降は自動選択
 5. 別のユーザーへの切り替えはいつでも可能
 
-**変更履歴の記録（抑止力）:**
+### OAuth 識別（Google 連携メンバー / Owner）
+
+Google 連携した時点で、そのユーザーは「ゆるい識別」から卒業し、Google アカウントが本人確認の鍵になる。
+
+**UI の変化:**
+- Google 連携済みメンバー: 名前の横に 🔒 アイコン表示
+- 🔒 付きユーザーをクリック → 「Google でログイン」ボタンが表示
+- Google 認証に成功した場合のみ操作可能
+
+**フロー例（えれんさん）:**
+```
+1. PC: 「えれん」を選択（ゆるい識別）→ 予定入力可能
+2. PC: Google 連携ボタンを押す → Google アカウント A で認証
+   → users[42] に Google A を紐付け、Cookie 発行
+   → 以降「えれん」は 🔒 付き表示になる
+3. モバイル: 「えれん 🔒」をタップ → 「Google でログイン」画面
+4. モバイル: Google アカウント A で認証 → OK、Cookie 発行
+5. モバイル: Google アカウント B で認証 → エラー「別のGoogleアカウントで連携済みです」
+```
+
+**ルール:**
+- 1つの users レコードに紐付く Google アカウントは1つだけ（`google_account_id` に UNIQUE 制約）
+- 連携済みユーザーに対して別の Google アカウントで認証 → エラー表示
+- Google 連携の解除: 本人（設定画面）または Owner（管理画面から強制解除）
+- 連携解除時: Google OAuth トークンと予定枠キャッシュ（calendar_caches）を削除し、ゆるい識別に戻る
+
+**Cookie の仕様:**
+- HttpOnly: JavaScript からアクセス不可（XSS 対策）
+- Secure: HTTPS 通信のみ
+- SameSite=Lax: CSRF 対策
+- 有効期限: 30日（アクセス時に自動延長）
+- セッショントークンはサーバー側で生成し、DB に保存
+
+**識別の優先順位:**
+1. Cookie がある場合 → Cookie のセッションからユーザーを特定（最優先）
+2. Cookie がない場合 → localStorage の selectedUserId を使用（ゆるい識別）
+3. 🔒 付きユーザーを localStorage で選択した場合 → 「Google でログイン」ボタンを表示
+
+### Owner（Discord OAuth + Google OAuth）
+
+- **Discord OAuth**: Bot 導入時に必須。Discord サーバーの管理者であることを確認。🔒 付き
+- **Google OAuth（任意）**: Google カレンダー連携時に必要。書き込み権限（`calendar` スコープ）を要求
+- 管理機能へのアクセスは Cookie（Discord OAuth セッション）で認証
+- 別デバイスでも同じ Discord アカウントで再認証すれば OK
+
+### メンバーの Google カレンダー連携（任意、メンバー自身が選択）
+
+| 連携パターン | Google OAuth スコープ | 機能 | 認証レベル |
+|---|---|---|---|
+| 連携なし | 不要 | 手動入力のみ | ゆるい識別 |
+| 予定枠のみ | `calendar.freebusy.readonly` | FreeBusy で予定有無を取得 → 自動×設定 | OAuth 識別（🔒） |
+| 予定枠 + 書き込み | `calendar.freebusy.readonly` + `calendar.events` | 上記 + 活動日確定時に個人カレンダーへ予定作成 | OAuth 識別（🔒） |
+
+### 変更履歴の記録（抑止力、全ユーザー共通）
 
 | 記録項目 | 取得方法 |
 |---|---|
@@ -56,19 +118,6 @@
 | 地域情報 | IP アドレスからの GeoIP 推定 |
 | 変更日時 | サーバータイムスタンプ |
 | 変更内容 | 変更前 → 変更後の差分 |
-
-### Owner（認証あり）
-
-- **Discord OAuth**: Bot 導入時に必須。Discord サーバーの管理者であることを確認
-- **Google OAuth（任意）**: Google カレンダー連携時に必要。書き込み権限（`calendar` スコープ）を要求
-
-### メンバーの Google カレンダー連携（任意、メンバー自身が選択）
-
-| 連携パターン | Google OAuth スコープ | 機能 |
-|---|---|---|
-| 連携なし | 不要 | 手動入力のみ |
-| 予定枠のみ | `calendar.freebusy.readonly` | FreeBusy で予定有無を取得 → 自動×設定 |
-| 予定枠 + 書き込み | `calendar.freebusy.readonly` + `calendar.events` | 上記 + 活動日確定時に個人カレンダーへ予定作成 |
 
 ## コンピューティング環境
 
@@ -78,31 +127,135 @@ Docker Compose によるローカル開発環境:
 
 ```yaml
 services:
+  nginx:      # リバースプロキシ（ポート 80/443）
   api:        # Rails API（ポート 3000）
+  sidekiq:    # Sidekiq ワーカー
   frontend:   # React 開発サーバー（ポート 5173）
   db:         # PostgreSQL 15
   redis:      # Redis（Sidekiq + キャッシュ）
   bot:        # Discord Bot（Node.js）
 ```
 
-### 本番環境（低コスト構成）
+### 本番環境（ConoHa VPS）
 
-| コンポーネント | サービス | 月額目安 |
-|---|---|---|
-| バックエンド（Rails API） | Render.com Free/Starter | 無料〜$7/月 |
-| フロントエンド（React） | Vercel or Cloudflare Pages | 無料 |
-| データベース（PostgreSQL） | Render PostgreSQL or Supabase Free | 無料〜$7/月 |
-| Redis | Upstash Redis | 無料枠あり |
-| Discord Bot | バックエンドと同居 or 別プロセス | 追加コストなし |
-| ドメイン | お名前.com 等 | 約 $10〜15/年 |
+ConoHa VPS 1台に全コンポーネントを Docker Compose で構築する。
 
-**月額合計目安: 無料〜約 $15/月**
+**アーキテクチャ:**
 
-### スケーリング方針
+```
+[インターネット]
+    │
+    ▼
+[ConoHa VPS（Docker Compose）]
+    │
+    ├── Nginx（リバースプロキシ + SSL終端 + 静的ファイル配信）
+    │     ├── /api/*  → Rails API コンテナ
+    │     └── /*      → React ビルド済み静的ファイル
+    │
+    ├── Rails API コンテナ（Puma）
+    ├── Sidekiq コンテナ（バックグラウンドジョブ）
+    ├── Discord Bot コンテナ（Node.js / discord.js）
+    ├── PostgreSQL コンテナ（データ永続化: Docker Volume）
+    └── Redis コンテナ（キャッシュ + ジョブキュー）
+```
 
-- 初期は無料枠を最大限活用する
-- ユーザー数が増加した場合、Render の有料プランまたは AWS Lightsail へ移行
-- 最大20名/グループの小規模利用を前提とし、過度なスケーリング設計は行わない
+**プラン別構成と負荷見積もり:**
+
+| フェーズ | グループ数 | ConoHa プラン | スペック | 月額 |
+|---|---|---|---|---|
+| 初期 | 〜50 | 2GB | 3コア / 2GB RAM / 100GB SSD | 1,259円 |
+| 成長期 | 50〜500 | 4GB | 4コア / 4GB RAM / 100GB SSD | 2,408円 |
+| 拡大期 | 500〜1000 | 12GB | 6コア / 12GB RAM / 100GB SSD | 4,828円 |
+
+**初期構成（2GB プラン）のメモリ配分:**
+
+| コンポーネント | メモリ使用量（目安） |
+|---|---|
+| Nginx | 約30MB |
+| Rails API（Puma 2ワーカー） | 約300MB |
+| Sidekiq（1プロセス） | 約150MB |
+| Discord Bot（Node.js） | 約100MB |
+| PostgreSQL | 約200MB |
+| Redis | 約50MB |
+| OS + その他 | 約200MB |
+| **合計** | **約1,030MB / 2,048MB** |
+
+### SSL/TLS
+
+- Let's Encrypt + certbot で無料 SSL 証明書を取得
+- certbot の自動更新を cron で設定（90日ごとに自動更新）
+- Nginx で SSL 終端
+
+### デプロイフロー
+
+```
+開発者が main ブランチに push
+  → GitHub Actions が起動
+  → テスト実行（RSpec, Jest, ESLint）
+  → テスト通過後、SSH 経由で ConoHa VPS にデプロイ:
+       1. git pull
+       2. docker compose build
+       3. docker compose up -d
+       4. docker compose exec api rails db:migrate（必要な場合）
+```
+
+### バックアップ
+
+- **PostgreSQL**: cron + pg_dump で毎日バックアップ（ローカル保存 + 外部ストレージ）
+- **保持期間**: 直近7日分のデイリーバックアップ + 直近4週分のウィークリーバックアップ
+- **リストア手順**: pg_restore でバックアップファイルから復元
+
+### 監視
+
+- **死活監視**: Uptime Kuma（Docker コンテナとして同居、または外部サービス）
+- **ログ**: Docker のログドライバーで集約。logrotate で肥大化防止
+- **アラート**: Uptime Kuma → Discord Webhook でダウン時に通知
+- **リソース監視**: htop / docker stats で手動確認。必要に応じて Prometheus + Grafana を追加
+
+### セキュリティ（VPS 固有）
+
+- UFW（ファイアウォール）で 80/443/SSH のみ開放
+- SSH は鍵認証のみ（パスワード認証無効化）
+- fail2ban で SSH ブルートフォース対策
+- Docker コンテナは非 root ユーザーで実行
+- 定期的な OS セキュリティアップデート（unattended-upgrades）
+
+### スケールアップ方針
+
+- ConoHa VPS のプラン変更はコントロールパネルから実行可能（サーバー停止 → プラン変更 → 再起動）
+- Docker Compose 構成のため、プラン変更後の再構築は不要
+- まとめトク契約中のプラン変更制約に注意（上位プランへの変更は可能、下位への変更は契約期間終了後）
+- 将来的にサーバー分離が必要になった場合は、DB を別 VPS に分離するのが最初のステップ
+
+### リポジトリ構成（モノレポ）
+
+```
+schedule-adjustment/
+├── backend/          # Ruby on Rails API
+│   ├── Dockerfile
+│   ├── Gemfile
+│   └── ...
+├── frontend/         # React + Vite
+│   ├── Dockerfile
+│   ├── package.json
+│   └── ...
+├── bot/              # Discord Bot（Node.js）
+│   ├── Dockerfile
+│   ├── package.json
+│   └── ...
+├── nginx/            # Nginx 設定
+│   └── nginx.conf
+├── docker-compose.yml
+├── docker-compose.prod.yml
+├── .github/
+│   └── workflows/
+│       ├── ci.yml    # テスト・Lint
+│       └── deploy.yml # 自動デプロイ
+└── doc/              # ドキュメント
+    ├── plan.md
+    ├── tech.md
+    └── qa.md
+```
 
 ## データベース設計
 
@@ -130,11 +283,23 @@ users
 ├── discord_user_id (UNIQUE, nullable)     -- Discord ユーザーID
 ├── discord_screen_name                     -- Discord スクリーン名（元の名前）
 ├── display_name                            -- 表示名（ユーザーが変更可能）
+├── google_account_id (UNIQUE, nullable)    -- Google アカウントID（連携時に設定）
 ├── google_oauth_token (暗号化, nullable)   -- Google OAuth トークン
 ├── google_calendar_scope (nullable)        -- 連携パターン: none / freebusy / full
+├── auth_locked (default: false)            -- true = OAuth 識別（🔒）、false = ゆるい識別
 ├── locale (default: 'ja')                  -- ロケール設定
 ├── anonymized (default: false)             -- 退会時に true
 ├── created_at, updated_at
+
+-- セッション（OAuth 識別ユーザー用）
+sessions
+├── id (PK)
+├── user_id (FK: users)
+├── token (UNIQUE)                          -- セッショントークン（Cookie に保存）
+├── expires_at (TIMESTAMP)                  -- 有効期限（30日、アクセス時に延長）
+├── user_agent (TEXT, nullable)
+├── ip_address (INET, nullable)
+├── created_at
 
 -- グループ
 groups
