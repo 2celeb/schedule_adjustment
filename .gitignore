@@ -2,3 +2,19 @@
 .env
 .env.*
 !.env.example
+
+# Docker
+docker-compose.override.yml
+
+# データベース・ストレージ
+postgres_data/
+redis_data/
+
+# OS 生成ファイル
+.DS_Store
+Thumbs.db
+
+# エディタ
+*.swp
+*.swo
+*~

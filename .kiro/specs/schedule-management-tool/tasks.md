@@ -12,14 +12,14 @@
 
 ## タスク
 
-- [ ] 1. プロジェクト基盤構築
-  - [ ] 1.1 モノレポ構成とDocker Compose開発環境のセットアップ
+- [-] 1. プロジェクト基盤構築
+  - [x] 1.1 モノレポ構成とDocker Compose開発環境のセットアップ
     - `schedule-adjustment/` 直下に `backend/`、`frontend/`、`bot/`、`nginx/`、`doc/` ディレクトリを作成
     - `docker-compose.yml`（開発用）を作成し、nginx、api、sidekiq、frontend、db（PostgreSQL 15）、redis、bot の各サービスを定義
     - Nginx のリバースプロキシ設定（`/api/*` → Rails、`/*` → React）を作成
     - _要件: 全体基盤_
 
-  - [ ] 1.2 Rails API プロジェクトの初期化
+  - [x] 1.2 Rails API プロジェクトの初期化
     - `backend/` に Rails 7.1+ API モードプロジェクトを作成
     - Gemfile に必要な gem を追加: `pg`、`sidekiq`、`sidekiq-cron`、`rack-attack`、`rack-cors`、`nanoid`、`rspec-rails`、`factory_bot_rails`、`rantly`（プロパティテスト用）
     - `Dockerfile` を作成
@@ -27,7 +27,7 @@
     - rack-attack によるレート制限の基本設定
     - _要件: 全体基盤_
 
-  - [ ] 1.3 データベースマイグレーションの作成
+  - [x] 1.3 データベースマイグレーションの作成
     - `users` テーブル: `discord_user_id`(UNIQUE)、`discord_screen_name`、`display_name`、`google_account_id`(UNIQUE)、`google_oauth_token`(暗号化)、`google_calendar_scope`、`auth_locked`(default:false)、`locale`(default:'ja')、`anonymized`(default:false)
     - `groups` テーブル: `name`、`event_name`、`owner_id`(FK)、`share_token`(UNIQUE/nanoid)、`timezone`(default:'Asia/Tokyo')、`default_start_time`、`default_end_time`、`threshold_n`、`threshold_target`(default:'core')、`ad_enabled`(default:true)、`locale`(default:'ja')
     - `memberships` テーブル: `user_id`(FK)、`group_id`(FK)、`role`(default:'sub')、UNIQUE(user_id, group_id)
@@ -40,7 +40,7 @@
     - `discord_configs` テーブル: `group_id`(FK/UNIQUE)、`guild_id`、`default_channel_id`、`remind_channel_id`
     - _要件: 全体基盤（doc/tech.md のデータベース設計セクション参照）_
 
-  - [ ] 1.4 Rails モデルの作成とバリデーション・リレーション定義
+  - [x] 1.4 Rails モデルの作成とバリデーション・リレーション定義
     - `User`、`Group`、`Membership`、`Availability`、`AvailabilityLog`、`EventDay`、`AutoScheduleRule`、`Session`、`CalendarCache`、`DiscordConfig` モデルを作成
     - 各モデルに `has_many`/`belongs_to` のリレーションを定義
     - バリデーション: `Availability.status` は `1, 0, -1, nil` のみ許可、`Membership.role` は `owner, core, sub` のみ許可、`Group.threshold_target` は `core, all` のみ許可

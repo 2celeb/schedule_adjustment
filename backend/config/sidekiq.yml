@@ -1,0 +1,9 @@
+# Sidekiq キュー定義
+# 優先度の高い順に処理される
+
+:concurrency: 5
+
+:queues:
+  - [critical, 3]
+  - [default, 2]
+  - [low, 1]

@@ -1,0 +1,58 @@
+source "https://rubygems.org"
+
+ruby ">= 3.2.0"
+
+# Rails フレームワーク（API モード）
+gem "rails", "~> 7.1"
+
+# データベース
+gem "pg", "~> 1.5"
+
+# アプリケーションサーバー
+gem "puma", "~> 6.0"
+
+# バックグラウンドジョブ
+gem "sidekiq", "~> 7.0"
+gem "sidekiq-cron", "~> 1.12"
+
+# セキュリティ・ミドルウェア
+gem "rack-attack", "~> 6.7"
+gem "rack-cors", "~> 2.0"
+
+# ユーティリティ
+gem "nanoid", "~> 2.0"
+
+# タイムゾーン・国際化
+gem "tzinfo-data", platforms: %i[windows jruby]
+
+# パフォーマンス（JSON シリアライズ高速化）
+gem "oj", "~> 3.16"
+
+# 起動高速化
+gem "bootsnap", require: false
+
+group :development, :test do
+  # テストフレームワーク
+  gem "rspec-rails", "~> 6.1"
+
+  # デバッグ
+  gem "debug", platforms: %i[mri windows]
+end
+
+group :test do
+  # テストデータ生成
+  gem "factory_bot_rails", "~> 6.4"
+
+  # プロパティテスト
+  gem "rantly", "~> 2.0"
+
+  # データベースクリーナー
+  gem "database_cleaner-active_record", "~> 2.1"
+end
+
+group :development do
+  # コード品質
+  gem "rubocop", require: false
+  gem "rubocop-rails", require: false
+  gem "rubocop-rspec", require: false
+end

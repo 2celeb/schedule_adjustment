@@ -1,0 +1,4 @@
+# Rails タスクの読み込み
+require_relative "config/application"
+
+Rails.application.load_tasks

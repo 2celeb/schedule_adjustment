@@ -1,0 +1,149 @@
+# 開発用 Docker Compose 設定
+# 全サービスをローカル環境で起動するための構成
+
+services:
+  # リバースプロキシ（ポート 80）
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+      - frontend
+    restart: unless-stopped
+
+  # Rails API サーバー（ポート 3000）
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - backend_bundle:/usr/local/bundle
+    environment:
+      - RAILS_ENV=development
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@db:5432/schedule_dev}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - RAILS_SECRET_KEY_BASE=${RAILS_SECRET_KEY_BASE:-dev_secret_key_base}
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost}
+      - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:-dev_internal_api_token}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Sidekiq ワーカー（バックグラウンドジョブ処理）
+  sidekiq:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: bundle exec sidekiq
+    volumes:
+      - ./backend:/app
+      - backend_bundle:/usr/local/bundle
+    environment:
+      - RAILS_ENV=development
+      - DATABASE_URL=${DATABASE_URL:-postgres://postgres:password@db:5432/schedule_dev}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - RAILS_SECRET_KEY_BASE=${RAILS_SECRET_KEY_BASE:-dev_secret_key_base}
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost}
+      - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:-dev_internal_api_token}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # React 開発サーバー（ポート 5173）
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+    environment:
+      - VITE_API_BASE_URL=http://localhost/api
+    restart: unless-stopped
+
+  # PostgreSQL 15 データベース
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=schedule_dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Redis（Sidekiq ジョブキュー + キャッシュ）
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Discord Bot（Node.js）
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    volumes:
+      - ./bot:/app
+      - bot_node_modules:/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - API_BASE_URL=http://api:3000
+      - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:-dev_internal_api_token}
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  backend_bundle:
+    driver: local
+  frontend_node_modules:
+    driver: local
+  bot_node_modules:
+    driver: local

@@ -1,0 +1,24 @@
+#!/usr/bin/env ruby
+require "fileutils"
+
+# セットアップスクリプト
+APP_ROOT = File.expand_path("..", __dir__)
+
+def system!(*args)
+  system(*args, exception: true)
+end
+
+FileUtils.chdir APP_ROOT do
+  puts "== 依存関係のインストール =="
+  system! "gem install bundler --conservative"
+  system("bundle check") || system!("bundle install")
+
+  puts "\n== データベースの準備 =="
+  system! "bin/rails db:prepare"
+
+  puts "\n== 一時ファイルの削除 =="
+  system! "bin/rails tmp:clear"
+
+  puts "\n== サーバーの再起動 =="
+  system! "bin/rails restart"
+end
