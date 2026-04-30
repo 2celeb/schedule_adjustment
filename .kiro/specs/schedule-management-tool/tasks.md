@@ -52,7 +52,7 @@
     - RSpec でバリデーション、リレーション、コールバックのテストを作成
     - _要件: 2.6, 3.2_
 
-  - [ ] 1.6 React + Vite フロントエンドプロジェクトの初期化
+  - [x] 1.6 React + Vite フロントエンドプロジェクトの初期化
     - `frontend/` に React 18+ + TypeScript + Vite プロジェクトを作成
     - `package.json` に依存パッケージを追加: `@mui/material`、`@emotion/react`、`@emotion/styled`、`@mui/icons-material`、`tailwindcss`、`@tailwindcss/vite`、`@tanstack/react-query`、`axios`、`react-i18next`、`i18next`
     - MUI テーマ設定（カラーパレット、フォント）
