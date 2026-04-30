@@ -10,9 +10,10 @@ Rails.application.routes.draw do
     mount Sidekiq::Web => "/sidekiq"
   end
 
-  # API エンドポイント（今後のタスクで追加）
+  # API エンドポイント
   namespace :api do
-    # タスク 3.1 以降で実装
+    # セッション管理
+    resource :sessions, only: [:destroy]
   end
 
   # OAuth エンドポイント（今後のタスクで追加）

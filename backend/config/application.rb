@@ -17,6 +17,9 @@ module ScheduleAdjustment
     # API モード
     config.api_only = true
 
+    # Cookie ミドルウェアの追加（セッション管理に必要）
+    config.middleware.use ActionDispatch::Cookies
+
     # タイムゾーン設定
     config.time_zone = "Asia/Tokyo"
     config.active_record.default_timezone = :utc

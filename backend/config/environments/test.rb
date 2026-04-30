@@ -22,4 +22,8 @@ Rails.application.configure do
 
   # ログレベル
   config.log_level = :warn
+
+  # テスト環境ではホスト認証を無効化
+  config.hosts.clear
+  config.host_authorization = { exclude: ->(request) { true } }
 end

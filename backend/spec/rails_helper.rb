@@ -23,6 +23,9 @@ RSpec.configure do |config|
   # FactoryBot のメソッドを直接使用可能にする
   config.include FactoryBot::Syntax::Methods
 
+  # ActiveSupport のテストヘルパー（travel_to 等）を使用可能にする
+  config.include ActiveSupport::Testing::TimeHelpers
+
   # フィクスチャのパス
   config.fixture_paths = [Rails.root.join("spec/fixtures")]
 
