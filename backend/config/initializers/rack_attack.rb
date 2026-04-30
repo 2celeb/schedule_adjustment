@@ -1,18 +1,22 @@
 # rack-attack によるレート制限設定
 # API エンドポイントへの過剰なリクエストを制限する
+# テスト環境ではレート制限を無効化する
 
 class Rack::Attack
   # キャッシュストアに Rails のキャッシュを使用
   Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
 
-  # 基本レート制限: 1分あたり60リクエスト/IP
-  throttle("api/ip", limit: 60, period: 1.minute) do |req|
-    req.ip if req.path.start_with?("/api")
-  end
+  # テスト環境ではレート制限を無効化
+  unless Rails.env.test?
+    # 基本レート制限: 1分あたり60リクエスト/IP
+    throttle("api/ip", limit: 60, period: 1.minute) do |req|
+      req.ip if req.path.start_with?("/api")
+    end
 
-  # 認証エンドポイントへの厳しいレート制限: 1分あたり10リクエスト/IP
-  throttle("auth/ip", limit: 10, period: 1.minute) do |req|
-    req.ip if req.path.start_with?("/oauth")
+    # 認証エンドポイントへの厳しいレート制限: 1分あたり10リクエスト/IP
+    throttle("auth/ip", limit: 10, period: 1.minute) do |req|
+      req.ip if req.path.start_with?("/oauth")
+    end
   end
 
   # レート制限超過時のレスポンス

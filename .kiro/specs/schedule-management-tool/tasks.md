@@ -96,7 +96,7 @@
     - rspec-property（Rantly）を使用し、任意の `auth_locked=true` ユーザーが Cookie なしで参加可否変更を試みた場合に拒否されることを検証
     - **Validates: 要件 1.5**
 
-  - [ ] 3.4 Google OAuth 認証フローの実装
+  - [x] 3.4 Google OAuth 認証フローの実装
     - `OAuth::GoogleController` を作成: OAuth 開始（`GET /oauth/google`）、コールバック（`GET /oauth/google/callback`）
     - Google OAuth 2.0 認証フロー: 認証コード取得 → トークン交換 → ユーザー情報取得
     - スコープ選択: メンバーは `calendar.freebusy.readonly` または `calendar.freebusy.readonly + calendar.events`、Owner は `calendar`

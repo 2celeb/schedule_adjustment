@@ -16,8 +16,12 @@ Rails.application.routes.draw do
     resource :sessions, only: [:destroy]
   end
 
-  # OAuth エンドポイント（今後のタスクで追加）
+  # OAuth エンドポイント
   namespace :oauth do
-    # タスク 3.4, 3.8 で実装
+    # Google OAuth（タスク 3.4）
+    get "google", to: "google#authorize"
+    get "google/callback", to: "google#callback"
+
+    # Discord OAuth（タスク 3.8 で実装）
   end
 end
