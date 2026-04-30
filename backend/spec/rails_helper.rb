@@ -4,12 +4,17 @@ ENV["RAILS_ENV"] ||= "test"
 require_relative "../config/environment"
 
 # マイグレーションが保留中の場合はテストを中止
-abort("テストデータベースのマイグレーションが保留中です。bin/rails db:migrate RAILS_ENV=test を実行してください。") if Rails.env.test? && ActiveRecord::Base.connection rescue nil
+begin
+  ActiveRecord::Migration.check_all_pending!
+rescue ActiveRecord::PendingMigrationError => e
+  abort(e.to_s.strip)
+end
 
 require "rspec/rails"
 require "factory_bot_rails"
-require "rantly"
-require "rantly/rspec_extensions"
+# Rantly（プロパティテスト）は必要な時に個別に読み込む
+# rantly/rspec_extensions は rspec gem の直接 require に依存するため、
+# ここでは読み込まない
 
 # spec/support 配下のファイルを自動読み込み
 Dir[Rails.root.join("spec/support/**/*.rb")].each { |f| require f }
