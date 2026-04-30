@@ -25,8 +25,11 @@ RUN bundle install
 # アプリケーションコードをコピー
 COPY . .
 
+# tmp ディレクトリを作成（Puma の PID ファイル用）
+RUN mkdir -p tmp/pids tmp/cache tmp/sockets log
+
 # ポート 3000 を公開
 EXPOSE 3000
 
-# デフォルトコマンド: Rails サーバーを起動（全インターフェースでリッスン、ポート3000）
-CMD ["bundle", "exec", "rails", "server", "-b", "0.0.0.0", "-p", "3000"]
+# デフォルトコマンド: Puma を直接起動（config.ru を読み込み、全インターフェースでリッスン）
+CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
