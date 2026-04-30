@@ -54,8 +54,9 @@
 
   - [ ] 1.6 React + Vite フロントエンドプロジェクトの初期化
     - `frontend/` に React 18+ + TypeScript + Vite プロジェクトを作成
-    - `package.json` に依存パッケージを追加: `tailwindcss`、`@headlessui/react`、`@tanstack/react-query`、`axios`、`react-i18next`、`i18next`
-    - Tailwind CSS の設定
+    - `package.json` に依存パッケージを追加: `@mui/material`、`@emotion/react`、`@emotion/styled`、`@mui/icons-material`、`tailwindcss`、`@tailwindcss/vite`、`@tanstack/react-query`、`axios`、`react-i18next`、`i18next`
+    - MUI テーマ設定（カラーパレット、フォント）
+    - Tailwind CSS の設定（レイアウト微調整用）
     - Axios クライアント設定（`frontend/src/api/client.ts`）: ベースURL、Cookie 送信設定
     - TanStack Query のプロバイダー設定
     - `Dockerfile` を作成

@@ -27,6 +27,7 @@
 - **モノレポ構成**: `backend/`（Rails API）、`frontend/`（React）、`bot/`（Discord Bot）を1リポジトリで管理
 - **全部載せ VPS**: ConoHa VPS 1台に Docker Compose で全コンポーネントを同居
 - **プライバシー重視**: Google カレンダーの予定詳細は一切取得・保存せず、FreeBusy（予定の有無）のみ参照
+- **UI ライブラリ**: Material UI (MUI) をメインの UI コンポーネントライブラリとして採用。Tailwind CSS はレイアウト微調整に併用。MUI の Table、Tooltip、Dialog、Chip、Tabs 等を活用し開発速度を向上させる。UIモック（`mock-mui/`）で検証済み
 
 ---
 
