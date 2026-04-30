@@ -62,7 +62,7 @@
     - `Dockerfile` を作成
     - _要件: 全体基盤_
 
-  - [ ] 1.7 国際化（i18n）の基盤設定
+  - [x] 1.7 国際化（i18n）の基盤設定
     - `frontend/src/i18n/ja.json` と `frontend/src/i18n/en.json` のリソースファイルを作成
     - `react-i18next` の初期設定
     - `frontend/src/utils/availabilitySymbols.ts` にロケール別記号マッピングを実装: ja → ○/△/×/−、en → ✓/?/✗/−

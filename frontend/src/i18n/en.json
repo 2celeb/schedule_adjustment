@@ -1,5 +1,131 @@
 {
   "app": {
     "title": "Schedule Management Tool"
+  },
+  "availability": {
+    "status": {
+      "ok": "Available",
+      "maybe": "Maybe",
+      "ng": "Unavailable",
+      "none": "Not entered"
+    },
+    "symbol": {
+      "ok": "✓",
+      "maybe": "?",
+      "ng": "✗",
+      "none": "−"
+    },
+    "comment": {
+      "placeholder": "Enter a reason",
+      "label": "Comment"
+    },
+    "pastDateLocked": "Past dates cannot be changed",
+    "autoSynced": "Auto-set from Google Calendar"
+  },
+  "member": {
+    "selector": {
+      "title": "Select Member"
+    },
+    "role": {
+      "owner": "Owner",
+      "core": "Core Member",
+      "sub": "Sub Member"
+    },
+    "authLocked": "Google authentication required",
+    "anonymized": "Former member"
+  },
+  "group": {
+    "settings": "Group Settings",
+    "name": "Group Name",
+    "eventName": "Event Name",
+    "timezone": "Timezone",
+    "locale": "Language",
+    "defaultStartTime": "Default Start Time",
+    "defaultEndTime": "Default End Time"
+  },
+  "eventDay": {
+    "title": "Event Day",
+    "confirmed": "Confirmed",
+    "unconfirmed": "Unconfirmed",
+    "customTime": "Custom time",
+    "add": "Add Event Day",
+    "delete": "Delete Event Day"
+  },
+  "threshold": {
+    "title": "Threshold Settings",
+    "count": "Threshold Count",
+    "target": {
+      "label": "Target",
+      "core": "Core members only",
+      "all": "All members"
+    },
+    "warning": "Unavailable count exceeds threshold"
+  },
+  "autoSchedule": {
+    "title": "Auto-Schedule Rules",
+    "maxDaysPerWeek": "Max days per week",
+    "minDaysPerWeek": "Min days per week",
+    "deprioritizedDays": "Deprioritized days",
+    "excludedDays": "Excluded days",
+    "weekStartDay": "Week start day",
+    "confirmDaysBefore": "Confirm days before week start",
+    "confirmTime": "Confirm time"
+  },
+  "calendar": {
+    "sync": "Google Calendar Sync",
+    "syncNow": "Sync Now",
+    "disconnect": "Disconnect Google",
+    "pattern": {
+      "none": "No sync",
+      "freebusyOnly": "Free/Busy only",
+      "freebusyAndWrite": "Free/Busy + Write"
+    }
+  },
+  "notification": {
+    "title": "Notification Settings",
+    "remindDaysBefore": "Remind days before confirmation",
+    "activityNotifyHoursBefore": "Notify hours before activity",
+    "activityNotifyMessage": "Day-of notification message",
+    "channel": "Notification channel"
+  },
+  "auth": {
+    "loginWithGoogle": "Sign in with Google",
+    "logout": "Sign out",
+    "relogin": "Sign in again",
+    "googleAccountConflict": "Already linked to a different Google account"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "offline": "Please check your connection",
+    "month": "Month",
+    "week": "Week"
+  },
+  "weekday": {
+    "0": "Sun",
+    "1": "Mon",
+    "2": "Tue",
+    "3": "Wed",
+    "4": "Thu",
+    "5": "Fri",
+    "6": "Sat"
+  },
+  "summary": {
+    "ok": "✓",
+    "maybe": "?",
+    "ng": "✗",
+    "none": "−",
+    "allAvailable": "All available",
+    "oneUnavailable": "1 unavailable"
+  },
+  "ad": {
+    "label": "Ad"
   }
 }
