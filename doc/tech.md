@@ -22,7 +22,7 @@
 | フレームワーク | React 18+ | ユーザー要件。コンポーネントベースの UI 構築 |
 | ビルドツール | Vite | 高速なビルドと HMR |
 | 状態管理 | TanStack Query (React Query) | サーバー状態管理に最適。キャッシュ・再取得の制御が容易 |
-| UI ライブラリ | Tailwind CSS + Headless UI | カスタマイズ性が高く軽量。レスポンシブ対応が容易 |
+| UI ライブラリ | Material UI (MUI) + Tailwind CSS | MUI: 豊富なコンポーネント（Table、Tooltip、Dialog、Chip 等）で開発速度向上。Tailwind: レイアウト微調整に使用 |
 | カレンダー UI | カスタム実装 | Availability_Board の独自要件（集計表示、色分け、メンバー横並び）に対応 |
 | HTTP クライアント | Axios | API 通信の標準ライブラリ |
 | 国際化 | react-i18next | ロケール設定による記号・テキスト切り替え（Q30） |

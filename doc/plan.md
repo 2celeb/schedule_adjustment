@@ -16,6 +16,18 @@
 
 ## プロジェクトフェーズ
 
+### UI モック
+
+UI の方向性を検証するため、以下のモックを作成済み:
+
+- `mock-mui/`: Material UI (MUI) 版モック — **採用決定**
+  - スケジュール一覧画面（AvailabilityBoard）
+  - 予定入力画面（○/△/× 選択 + Google カレンダー予定枠の統合表示）
+  - コメント入力・表示（△/× 選択時のダイアログ、一覧でのホバー表示）
+  - 起動: `npm run dev --prefix mock-mui`（ポート 5173）
+- `mock-tailwind/`: Tailwind CSS 版モック — 比較用
+  - 起動: `npm run dev --prefix mock-tailwind`（ポート 5174）
+
 ### フェーズ 1: 基盤構築（2〜3週間）
 
 - Ruby on Rails プロジェクトのセットアップ（API モード）
