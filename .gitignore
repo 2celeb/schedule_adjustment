@@ -5,6 +5,7 @@
 
 # Docker
 docker-compose.override.yml
+.docker/
 
 # データベース・ストレージ
 postgres_data/
@@ -14,7 +15,27 @@ redis_data/
 .DS_Store
 Thumbs.db
 
+# Rails
+backend/log/
+backend/tmp/
+backend/storage/
+backend/.bundle/
+backend/config/master.key
+backend/config/credentials/*.key
+*.pid
+
+# Node.js
+node_modules/
+dist/
+dist-ssr/
+*.log
+*.local
+
+# テスト
+coverage/
+
 # エディタ
 *.swp
 *.swo
 *~
+.idea/
