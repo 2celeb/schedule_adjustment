@@ -92,7 +92,11 @@
     "loginWithGoogle": "Google でログイン",
     "logout": "ログアウト",
     "relogin": "再ログイン",
-    "googleAccountConflict": "別の Google アカウントで連携済みです"
+    "googleAccountConflict": "別の Google アカウントで連携済みです",
+    "callbackProcessing": "認証処理中...",
+    "callbackSuccess": "認証に成功しました。リダイレクトしています...",
+    "callbackError": "認証中にエラーが発生しました",
+    "backToTop": "トップページに戻る"
   },
   "common": {
     "save": "保存",
@@ -124,6 +128,12 @@
     "none": "−",
     "allAvailable": "全員参加可能",
     "oneUnavailable": "1名のみ参加不可"
+  },
+  "schedule": {
+    "title": "スケジュール",
+    "noGroup": "グループが見つかりません",
+    "boardPlaceholder": "参加可否ボードはここに表示されます",
+    "adPlaceholder": "広告エリア"
   },
   "ad": {
     "label": "広告"

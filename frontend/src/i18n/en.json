@@ -92,7 +92,11 @@
     "loginWithGoogle": "Sign in with Google",
     "logout": "Sign out",
     "relogin": "Sign in again",
-    "googleAccountConflict": "Already linked to a different Google account"
+    "googleAccountConflict": "Already linked to a different Google account",
+    "callbackProcessing": "Processing authentication...",
+    "callbackSuccess": "Authentication successful. Redirecting...",
+    "callbackError": "An error occurred during authentication",
+    "backToTop": "Back to top page"
   },
   "common": {
     "save": "Save",
@@ -124,6 +128,12 @@
     "none": "−",
     "allAvailable": "All available",
     "oneUnavailable": "1 unavailable"
+  },
+  "schedule": {
+    "title": "Schedule",
+    "noGroup": "Group not found",
+    "boardPlaceholder": "Availability board will be displayed here",
+    "adPlaceholder": "Ad area"
   },
   "ad": {
     "label": "Ad"

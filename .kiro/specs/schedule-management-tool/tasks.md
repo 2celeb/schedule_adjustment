@@ -225,8 +225,8 @@
   - グループ管理、メンバー管理、参加可否の入力・取得・集計が正しく動作すること
   - すべてのテストが通ることを確認し、不明点があればユーザーに質問する
 
-- [ ] 8. フロントエンド: メンバー選択とゆるい識別 UI の実装
-  - [ ] 8.1 メンバー選択バーの実装
+- [x] 8. フロントエンド: メンバー選択とゆるい識別 UI の実装
+  - [x] 8.1 メンバー選択バーの実装
     - `MemberSelector.tsx`: メンバー名を横並びで表示、クリック/タップで選択
     - `MemberAvatar.tsx`: メンバー表示（🔒 アイコン付き対応）、Discord スクリーン名のホバー/タップ表示
     - `MemberRoleBadge.tsx`: Core/Sub バッジ表示
@@ -234,14 +234,14 @@
     - 🔒 付きユーザー選択時は `GoogleLoginButton.tsx` を表示
     - _要件: 1.2, 1.3, 1.5, 2.3, 2.4_
 
-  - [ ] 8.2 認証関連コンポーネントの実装
+  - [x] 8.2 認証関連コンポーネントの実装
     - `GoogleLoginButton.tsx`: Google OAuth 認証開始ボタン
     - `LockIcon.tsx`: 🔒 アイコンコンポーネント
     - `OAuthCallbackPage.tsx`: OAuth コールバック処理ページ
     - `useCurrentUser.ts` フック: Cookie / localStorage からの現在ユーザー識別ロジック
     - _要件: 1.4, 1.5_
 
-  - [ ] 8.3 SchedulePage（メインページ）の実装
+  - [x] 8.3 SchedulePage（メインページ）の実装
     - `SchedulePage.tsx`: メインスケジュールページのレイアウト
     - URL パラメータから `share_token` を取得しグループ情報を読み込み
     - メンバー選択バー + Availability_Board + 広告配置のレイアウト構成
