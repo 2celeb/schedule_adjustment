@@ -291,8 +291,8 @@
   - メンバー選択、参加可否の入力・表示・集計、コメント表示、レスポンシブ対応が正しく動作すること
   - すべてのテストが通ることを確認し、不明点があればユーザーに質問する
 
-- [ ] 11. Discord Bot 基盤の実装
-  - [ ] 11.1 Discord Bot プロジェクトの初期化
+- [x] 11. Discord Bot 基盤の実装
+  - [x] 11.1 Discord Bot プロジェクトの初期化
     - `bot/` に Node.js + TypeScript プロジェクトを作成
     - `package.json` に依存パッケージを追加: `discord.js`、`axios`
     - `Dockerfile` を作成
@@ -300,20 +300,20 @@
     - `bot/src/services/apiClient.ts`: Rails 内部 API クライアント（Bot トークン認証）
     - _要件: 8.1_
 
-  - [ ] 11.2 スラッシュコマンドの実装
+  - [x] 11.2 スラッシュコマンドの実装
     - `bot/src/commands/schedule.ts`: `/schedule` コマンド — スケジュールページURL表示、初回設定未完了時は設定フロー開始
     - `bot/src/commands/status.ts`: `/status` コマンド — 今週の予定入力状況表示
     - `bot/src/commands/settings.ts`: `/settings` コマンド — グループ設定画面URL表示（Owner のみ）
     - _要件: 8.2, 8.3, 8.4_
 
-  - [ ] 11.3 初回設定フローの実装
+  - [x] 11.3 初回設定フローの実装
     - `bot/src/setup/initialSetup.ts`: `/schedule` コマンド初回実行時の設定フロー
     - Discord OAuth 認証の要求（Owner 登録）
     - Server Members Intent でメンバーリスト自動取得 → Rails 内部 API でグループ作成・メンバー同期
     - デフォルト設定の適用: グループ名=Discord サーバー名、イベント名="${グループ名}の活動"、基本活動時間=ユーザー入力、タイムゾーン=Asia/Tokyo
     - _要件: 2.1, 2.2, 8.1, 8.5_
 
-  - [ ] 11.4 メンバー参加・退出イベントの処理
+  - [x] 11.4 メンバー参加・退出イベントの処理
     - `bot/src/events/guildMemberAdd.ts`: メンバー参加時に Rails API でメンバー追加
     - `bot/src/events/guildMemberRemove.ts`: メンバー退出時のログ記録
     - `bot/src/events/ready.ts`: Bot 起動時の初期化処理
