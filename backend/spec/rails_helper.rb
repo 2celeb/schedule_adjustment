@@ -1,6 +1,6 @@
 # Rails テスト環境の設定
 require "spec_helper"
-ENV["RAILS_ENV"] ||= "test"
+ENV["RAILS_ENV"] = "test"
 require_relative "../config/environment"
 
 # マイグレーションが保留中の場合はテストを中止

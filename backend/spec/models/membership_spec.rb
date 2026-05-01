@@ -39,6 +39,41 @@ RSpec.describe Membership, type: :model do
         expect(membership2).to be_valid
       end
     end
+
+    describe 'グループメンバー上限' do
+      it "メンバー数が上限（#{Group::MAX_MEMBERS}名）に達している場合、新規作成を拒否する" do
+        group = create(:group)
+        Group::MAX_MEMBERS.times do
+          create(:membership, group: group)
+        end
+
+        new_membership = build(:membership, group: group)
+        expect(new_membership).not_to be_valid
+        expect(new_membership.errors[:base]).to be_present
+      end
+
+      it "メンバー数が上限未満の場合、新規作成を許可する" do
+        group = create(:group)
+        (Group::MAX_MEMBERS - 1).times do
+          create(:membership, group: group)
+        end
+
+        new_membership = build(:membership, group: group)
+        expect(new_membership).to be_valid
+      end
+
+      it "既存メンバーの更新は上限チェックの対象外" do
+        group = create(:group)
+        memberships = Group::MAX_MEMBERS.times.map do
+          create(:membership, group: group)
+        end
+
+        # 既存メンバーの役割変更は成功する
+        membership = memberships.first
+        membership.role = 'core'
+        expect(membership).to be_valid
+      end
+    end
   end
 
   describe 'ファクトリ' do

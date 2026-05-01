@@ -109,7 +109,7 @@
     - 任意の Google 連携済みユーザーに対して異なる `google_account_id` での認証が拒否されることを検証
     - **Validates: 要件 1.6**
 
-  - [ ] 3.6 Google 連携解除の実装
+  - [x] 3.6 Google 連携解除の実装
     - `DELETE /api/users/:id/google_link` エンドポイントを作成
     - 解除処理: `auth_locked=false`、`google_oauth_token=null`、`google_account_id=null`、`google_calendar_scope=null` に更新
     - 該当ユーザーの `calendar_caches` レコードを全削除
@@ -121,13 +121,13 @@
     - 任意の Google 連携済みユーザーの連携解除後に `auth_locked=false`、トークン・アカウントID が null、calendar_caches が全削除されていることを検証
     - **Validates: 要件 1.7, 7.11**
 
-  - [ ] 3.8 Discord OAuth 認証フローの実装
+  - [x] 3.8 Discord OAuth 認証フローの実装
     - `OAuth::DiscordController` を作成: OAuth 開始（`GET /oauth/discord`）、コールバック（`GET /oauth/discord/callback`）
     - Discord OAuth 2.0 認証フロー: Owner の Discord アカウントを確認
     - 認証成功時: `auth_locked=true` に更新、セッション Cookie 発行
     - _要件: 1.8_
 
-  - [ ] 3.9 変更履歴記録の共通ロジック実装
+  - [x] 3.9 変更履歴記録の共通ロジック実装
     - `AvailabilityLog` の作成ロジックを `Availability` モデルのコールバックとして実装
     - リクエストから `user_agent`、`ip_address` を取得し記録
     - IP アドレスからの地域推定（GeoIP）ロジック
@@ -138,12 +138,12 @@
     - 任意の Availability 変更操作後に `availability_logs` に対応レコードが作成され、必要なフィールドが記録されていることを検証
     - **Validates: 要件 1.10**
 
-- [ ] 4. チェックポイント - 認証基盤の確認
+- [x] 4. チェックポイント - 認証基盤の確認
   - ゆるい識別と OAuth 識別の2層認証が正しく動作すること、Google/Discord OAuth フローが完了すること、変更履歴が記録されることを確認
   - すべてのテストが通ることを確認し、不明点があればユーザーに質問する
 
 - [ ] 5. グループ管理とメンバー登録の実装
-  - [ ] 5.1 グループ CRUD API の実装
+  - [x] 5.1 グループ CRUD API の実装
     - `Api::GroupsController` を作成
     - `GET /api/groups/:share_token`: グループ情報取得（認証不要）
     - `PATCH /api/groups/:id`: グループ設定更新（Owner のみ、Cookie 認証）
@@ -151,7 +151,7 @@
     - グループ作成時に nanoid で `share_token` を自動生成
     - _要件: 1.1, 2.2, 10.7_
 
-  - [ ] 5.2 メンバー管理 API の実装
+  - [x] 5.2 メンバー管理 API の実装
     - `Api::MembershipsController` を作成
     - `GET /api/groups/:share_token/members`: メンバー一覧取得（認証不要）
     - `PATCH /api/memberships/:id`: メンバー役割変更（Owner のみ、`core`/`sub` の切り替え）
@@ -159,14 +159,14 @@
     - メンバー上限チェック: グループあたり最大20名、超過時は 422 エラー
     - _要件: 2.3, 2.4, 2.5, 2.6, 2.9_
 
-  - [ ] 5.3 内部 API（Discord Bot → Rails）の実装
+  - [-] 5.3 内部 API（Discord Bot → Rails）の実装
     - Bot トークン認証ミドルウェアの作成
     - `POST /api/internal/groups`: グループ初回作成（Bot トークン認証）
     - `POST /api/internal/groups/:id/sync_members`: メンバー同期（Discord メンバーリストからの一括登録・更新）
     - `GET /api/internal/groups/:id/weekly_status`: 週次入力状況取得
     - _要件: 2.1, 2.3, 8.1_
 
-  - [ ] 5.4 権限ポリシーの実装
+  - [~] 5.4 権限ポリシーの実装
     - `GroupPolicy`: Owner のみグループ設定変更、URL再生成を許可
     - `AvailabilityPolicy`: auth_locked ユーザーは Cookie 必須、過去日付は Owner のみ変更可
     - `EventDayPolicy`: Owner のみ活動日の追加・変更・削除を許可

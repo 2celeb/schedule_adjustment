@@ -1,6 +1,9 @@
 # グループモデル
 # Discord サーバーに対応し、メンバーのスケジュール管理を行う
 class Group < ApplicationRecord
+  # メンバー上限
+  MAX_MEMBERS = 20
+
   # コールバック: share_token の自動生成
   before_validation :generate_share_token, on: :create
 
@@ -19,6 +22,11 @@ class Group < ApplicationRecord
   validates :share_token, presence: true, uniqueness: true
   validates :threshold_target, inclusion: { in: %w[core all] }, allow_nil: true
   validates :locale, inclusion: { in: %w[ja en] }
+
+  # メンバー上限に達しているかを判定する
+  def member_limit_reached?
+    memberships.count >= MAX_MEMBERS
+  end
 
   private
 

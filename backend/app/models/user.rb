@@ -11,7 +11,7 @@ class User < ApplicationRecord
   has_many :availabilities, dependent: :destroy
   has_many :availability_logs, dependent: :destroy
   has_many :sessions, dependent: :destroy
-  has_many :calendar_caches, dependent: :destroy
+  has_many :calendar_caches, class_name: 'CalendarCache', dependent: :destroy
 
   # バリデーション
   validates :discord_user_id, uniqueness: true, allow_nil: true

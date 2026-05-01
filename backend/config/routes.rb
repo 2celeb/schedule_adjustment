@@ -14,6 +14,40 @@ Rails.application.routes.draw do
   namespace :api do
     # セッション管理
     resource :sessions, only: [:destroy]
+
+    # Google 連携解除（タスク 3.6）
+    # 表示名変更（タスク 5.2）
+    resources :users, only: [] do
+      resource :google_link, only: [:destroy]
+      resource :display_name, only: [:update]
+    end
+
+    # メンバー管理（タスク 5.2）
+    resources :memberships, only: [:update]
+
+    # グループ関連（タスク 5.1）
+    # show は share_token でアクセス（認証不要）
+    resources :groups, only: [:show], param: :share_token do
+      # メンバー一覧取得（タスク 5.2）
+      resources :members, only: [:index], controller: "memberships"
+    end
+
+    # update, regenerate_token は id でアクセス（Owner のみ、Cookie 認証）
+    resources :groups, only: [:update] do
+      member do
+        post :regenerate_token
+      end
+    end
+
+    # 内部 API（Discord Bot → Rails）（タスク 5.3）
+    namespace :internal do
+      resources :groups, only: [:create] do
+        member do
+          post :sync_members
+          get :weekly_status
+        end
+      end
+    end
   end
 
   # OAuth エンドポイント
@@ -22,6 +56,8 @@ Rails.application.routes.draw do
     get "google", to: "google#authorize"
     get "google/callback", to: "google#callback"
 
-    # Discord OAuth（タスク 3.8 で実装）
+    # Discord OAuth（タスク 3.8）
+    get "discord", to: "discord#authorize"
+    get "discord/callback", to: "discord#callback"
   end
 end
