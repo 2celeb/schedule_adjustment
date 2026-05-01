@@ -30,6 +30,11 @@ Rails.application.routes.draw do
     resources :groups, only: [:show], param: :share_token do
       # メンバー一覧取得（タスク 5.2）
       resources :members, only: [:index], controller: "memberships"
+
+      # 参加可否（タスク 6.1）
+      # GET: 全メンバーの参加可否取得（認証不要）
+      # PUT: 参加可否の一括更新（ゆるい識別 or Cookie）
+      resource :availabilities, only: [:show, :update]
     end
 
     # update, regenerate_token は id でアクセス（Owner のみ、Cookie 認証）
