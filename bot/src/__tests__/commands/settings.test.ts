@@ -78,4 +78,21 @@ describe("/settings コマンド", () => {
     const replyCall = (interaction.reply as jest.Mock).mock.calls[0][0];
     expect(replyCall.ephemeral).toBe(true);
   });
+
+  it("設定画面 URL が /settings パスを含むこと", async () => {
+    const interaction = createMockInteraction({ guildId: "guild-100" });
+    mockGetGroup.mockReturnValue({
+      groupId: 1,
+      shareToken: "my-token",
+    });
+
+    await settings.execute(interaction);
+
+    const replyCall = (interaction.reply as jest.Mock).mock.calls[0][0];
+    expect(replyCall.content).toContain(
+      "http://localhost/groups/my-token/settings"
+    );
+    // ⚙️ アイコンが含まれること
+    expect(replyCall.content).toContain("⚙️");
+  });
 });

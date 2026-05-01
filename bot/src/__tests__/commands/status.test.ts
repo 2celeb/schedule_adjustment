@@ -127,4 +127,50 @@ describe("/status コマンド", () => {
       content: expect.stringContaining("失敗しました"),
     });
   });
+
+  it("メンバーが0人の場合でも正常に表示すること", async () => {
+    const interaction = createMockInteraction({ guildId: "guild-100" });
+    mockGetGroup.mockReturnValue({ groupId: 1, shareToken: "token-1" });
+    mockGetWeeklyStatus.mockResolvedValue({
+      group: { id: 1, name: "テスト", share_token: "token-1" },
+      week_start: "2026-05-04",
+      week_end: "2026-05-10",
+      members: [],
+    });
+
+    await status.execute(interaction);
+
+    const editReplyCall = (interaction.editReply as jest.Mock).mock.calls[0][0];
+    const content = editReplyCall.content as string;
+
+    // 期間ヘッダーが表示されること
+    expect(content).toContain("2026-05-04");
+    expect(content).toContain("2026-05-10");
+  });
+
+  it("filled_count が total_days と同じ場合に ✅ アイコンが表示されること", async () => {
+    const interaction = createMockInteraction({ guildId: "guild-100" });
+    mockGetGroup.mockReturnValue({ groupId: 1, shareToken: "token-1" });
+    mockGetWeeklyStatus.mockResolvedValue({
+      group: { id: 1, name: "テスト", share_token: "token-1" },
+      week_start: "2026-05-04",
+      week_end: "2026-05-10",
+      members: [
+        {
+          user_id: 1,
+          display_name: "完了メンバー",
+          discord_user_id: "user-1",
+          role: "core",
+          dates: [],
+          filled_count: 5,
+          total_days: 5,
+        },
+      ],
+    });
+
+    await status.execute(interaction);
+
+    const editReplyCall = (interaction.editReply as jest.Mock).mock.calls[0][0];
+    expect(editReplyCall.content).toContain("✅ 完了メンバー: 5/5日入力済み");
+  });
 });

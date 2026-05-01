@@ -357,4 +357,63 @@ describe("initialSetup", () => {
     expect(result.success).toBe(true);
     expect(mockSetGroup).toHaveBeenCalled();
   });
+
+  it("完了メッセージにグループ名・メンバー数・URL・設定案内が含まれること", async () => {
+    const interaction = createMockInteraction({
+      guildId: "guild-100",
+      guildName: "フォーマットテスト",
+      userId: "owner-1",
+      channelId: "ch-1",
+    });
+
+    const member1 = createMockGuildMember({
+      userId: "user-2",
+      displayName: "メンバーA",
+      guildId: "guild-100",
+    });
+    setupMockGuildMembers(interaction, [member1]);
+
+    mockCreateGroup.mockResolvedValue({
+      group: {
+        id: 1,
+        name: "フォーマットテスト",
+        event_name: "テスト",
+        owner_id: 1,
+        share_token: "fmt-token",
+        timezone: "Asia/Tokyo",
+        default_start_time: null,
+        default_end_time: null,
+        locale: "ja",
+        created_at: "2026-01-01",
+        updated_at: "2026-01-01",
+      },
+    });
+
+    mockSyncMembers.mockResolvedValue({
+      group_id: 1,
+      results: {
+        added: [{ discord_user_id: "user-2", user_id: 2 }],
+        updated: [],
+        skipped: [],
+        errors: [],
+      },
+    });
+
+    await runInitialSetup(interaction);
+
+    const editReplyCalls = (interaction.editReply as jest.Mock).mock.calls;
+    const lastCall = editReplyCalls[editReplyCalls.length - 1][0];
+    const content = lastCall.content as string;
+
+    // ✅ 完了アイコン
+    expect(content).toContain("✅");
+    // グループ名
+    expect(content).toContain("フォーマットテスト");
+    // メンバー数（Owner 1 + 同期 1 = 2名）
+    expect(content).toContain("2名を登録しました");
+    // スケジュール URL
+    expect(content).toContain("/groups/fmt-token");
+    // 設定案内
+    expect(content).toContain("/settings");
+  });
 });

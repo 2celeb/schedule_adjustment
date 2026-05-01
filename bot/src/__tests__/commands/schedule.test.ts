@@ -152,4 +152,51 @@ describe("/schedule コマンド", () => {
       content: expect.stringContaining("エラーが発生しました"),
     });
   });
+
+  it("キャッシュヒット時の URL が正しいフォーマットであること", async () => {
+    const interaction = createMockInteraction({ guildId: "guild-fmt" });
+    mockGetGroup.mockReturnValue({
+      groupId: 1,
+      shareToken: "abc-def-123",
+    });
+
+    await schedule.execute(interaction);
+
+    const replyCall = (interaction.reply as jest.Mock).mock.calls[0][0];
+    // URL が FRONTEND_URL/groups/{shareToken} の形式であること
+    expect(replyCall.content).toContain(
+      "http://localhost/groups/abc-def-123"
+    );
+    // 📅 アイコンが含まれること
+    expect(replyCall.content).toContain("📅");
+  });
+
+  it("API 検索結果の URL が正しいフォーマットであること", async () => {
+    const interaction = createMockInteraction({ guildId: "guild-fmt2" });
+    mockGetGroup.mockReturnValue(undefined);
+    mockFindGroup.mockResolvedValue({
+      group: {
+        id: 10,
+        name: "フォーマットテスト",
+        share_token: "fmt-token-xyz",
+        event_name: "テスト",
+        owner_id: 1,
+        timezone: "Asia/Tokyo",
+        default_start_time: null,
+        default_end_time: null,
+        locale: "ja",
+        created_at: "2026-01-01",
+        updated_at: "2026-01-01",
+      },
+    });
+
+    await schedule.execute(interaction);
+
+    const editReplyCall = (interaction.editReply as jest.Mock).mock
+      .calls[0][0];
+    expect(editReplyCall.content).toContain(
+      "http://localhost/groups/fmt-token-xyz"
+    );
+    expect(editReplyCall.content).toContain("📅");
+  });
 });
