@@ -25,7 +25,7 @@ module Api
       members = load_members
       availabilities = load_availabilities(date_range)
       event_days = load_event_days(date_range)
-      summary = build_summary(date_range, members, availabilities)
+      summary = AvailabilityAggregator.new(@group, date_range).call
 
       render json: {
         group: serialize_group(@group),
@@ -147,28 +147,6 @@ module Api
       @group.event_days
             .where(date: date_range)
             .order(:date)
-    end
-
-    # 集計データを構築する
-    # 各日付の ○/△/×/− の人数を集計
-    def build_summary(date_range, members, availabilities)
-      total_members = members.size
-
-      # 日付ごとの status をハッシュに整理
-      avail_by_date = availabilities.group_by(&:date)
-
-      summary = {}
-      date_range.each do |date|
-        day_avails = avail_by_date[date] || []
-        ok = day_avails.count { |a| a.status == 1 }
-        maybe = day_avails.count { |a| a.status == 0 }
-        ng = day_avails.count { |a| a.status == -1 }
-        none = total_members - ok - maybe - ng
-
-        summary[date.iso8601] = { ok: ok, maybe: maybe, ng: ng, none: none }
-      end
-
-      summary
     end
 
     # 更新対象ユーザーを特定する
