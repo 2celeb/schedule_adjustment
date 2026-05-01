@@ -4,8 +4,10 @@ import * as apiClient from "../services/apiClient.js";
 import { setGroup, getGroup } from "../services/guildGroupMap.js";
 import { runInitialSetup } from "../setup/initialSetup.js";
 
-// フロントエンド URL（デフォルト: http://localhost）
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost";
+// フロントエンド URL を取得する関数（テスト時に環境変数を動的に参照可能にする）
+function getFrontendUrl(): string {
+  return process.env.FRONTEND_URL || "http://localhost";
+}
 
 // /schedule コマンド
 // スケジュールページの URL を表示する
@@ -31,7 +33,7 @@ const schedule: BotCommand = {
     // 1. キャッシュにグループ情報があるか確認 → あれば URL を返信
     const cached = getGroup(guildId);
     if (cached) {
-      const url = `${FRONTEND_URL}/groups/${cached.shareToken}`;
+      const url = `${getFrontendUrl()}/groups/${cached.shareToken}`;
       await interaction.reply({
         content: `📅 スケジュールページはこちらです:\n${url}`,
       });
@@ -53,7 +55,7 @@ const schedule: BotCommand = {
           shareToken: group.share_token,
         });
 
-        const url = `${FRONTEND_URL}/groups/${group.share_token}`;
+        const url = `${getFrontendUrl()}/groups/${group.share_token}`;
         await interaction.editReply({
           content: `📅 スケジュールページはこちらです:\n${url}`,
         });

@@ -2,8 +2,10 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 import type { BotCommand } from "../types.js";
 import { getGroup } from "../services/guildGroupMap.js";
 
-// フロントエンド URL（デフォルト: http://localhost）
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost";
+// フロントエンド URL を取得する関数（テスト時に環境変数を動的に参照可能にする）
+function getFrontendUrl(): string {
+  return process.env.FRONTEND_URL || "http://localhost";
+}
 
 // /settings コマンド
 // グループ設定画面の URL を表示する（Owner のみ）
@@ -37,7 +39,7 @@ const settings: BotCommand = {
       return;
     }
 
-    const url = `${FRONTEND_URL}/groups/${cached.shareToken}/settings`;
+    const url = `${getFrontendUrl()}/groups/${cached.shareToken}/settings`;
     await interaction.reply({
       content: `⚙️ グループ設定画面はこちらです:\n${url}`,
       ephemeral: true,
