@@ -2,11 +2,12 @@
  * メインスケジュールページ
  *
  * URL パラメータから share_token を取得し、グループ情報を読み込む。
- * メンバー選択バー + Availability_Board プレースホルダー + 広告配置プレースホルダーの
+ * メンバー選択バー + Availability_Board + 広告配置プレースホルダーの
  * レイアウトを構成する。
  *
- * 要件: 1.1, 4.3
+ * 要件: 1.1, 4.3, 3.1, 3.2
  */
+import { useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import {
   Container,
@@ -19,13 +20,70 @@ import {
 import { useTranslation } from "react-i18next";
 import { useGroup } from "@/hooks/useGroup";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import {
+  useAvailabilities,
+  cycleStatus,
+} from "@/hooks/useAvailabilities";
 import MemberSelector from "@/components/members/MemberSelector";
+import AvailabilityBoard, {
+  formatMonthKey,
+} from "@/components/availability/AvailabilityBoard";
+import type { SupportedLocale, AvailabilityStatus } from "@/utils/availabilitySymbols";
 
 export default function SchedulePage() {
   const { t } = useTranslation();
   const { share_token } = useParams<{ share_token: string }>();
   const { group, members, isLoading, isError } = useGroup(share_token);
   const { selectedUserId, selectUser } = useCurrentUser();
+
+  /* 現在表示中の月（YYYY-MM 形式） */
+  const [currentMonth, setCurrentMonth] = useState<string>(
+    () => formatMonthKey(new Date()),
+  );
+
+  /* 参加可否データの取得・更新 */
+  const {
+    availabilities,
+    eventDays,
+    summary,
+    updateAvailability,
+  } = useAvailabilities(share_token, currentMonth);
+
+  /* 月変更ハンドラー */
+  const handleMonthChange = useCallback((month: string) => {
+    setCurrentMonth(month);
+  }, []);
+
+  /* ステータス変更ハンドラー */
+  const handleStatusChange = useCallback(
+    (date: string, memberId: number, newStatus: AvailabilityStatus) => {
+      updateAvailability({
+        userId: memberId,
+        date,
+        status: newStatus,
+        comment: null,
+      });
+    },
+    [updateAvailability],
+  );
+
+  /* コメント保存ハンドラー */
+  const handleCommentSave = useCallback(
+    (date: string, memberId: number, comment: string) => {
+      /* 現在の status を取得してコメント付きで再保存 */
+      const entry = availabilities[date]?.[String(memberId)];
+      const currentStatus = entry?.status ?? null;
+      if (currentStatus !== null) {
+        updateAvailability({
+          userId: memberId,
+          date,
+          status: currentStatus,
+          comment: comment || null,
+        });
+      }
+    },
+    [updateAvailability, availabilities],
+  );
 
   /* ローディング状態 */
   if (isLoading) {
@@ -84,23 +142,19 @@ export default function SchedulePage() {
         onSelectUser={selectUser}
       />
 
-      {/* Availability_Board プレースホルダー（タスク 9 で実装予定） */}
-      <Paper
-        variant="outlined"
-        sx={{
-          p: { xs: 2, sm: 3 },
-          mb: 3,
-          minHeight: 200,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-        data-testid="availability-board-placeholder"
-      >
-        <Typography color="text.secondary">
-          {t("schedule.boardPlaceholder")}
-        </Typography>
-      </Paper>
+      {/* Availability_Board */}
+      <AvailabilityBoard
+        group={group}
+        members={members}
+        availabilities={availabilities}
+        eventDays={eventDays}
+        summary={summary}
+        selectedUserId={selectedUserId}
+        locale={(group.locale as SupportedLocale) || "ja"}
+        onStatusChange={handleStatusChange}
+        onCommentSave={handleCommentSave}
+        onMonthChange={handleMonthChange}
+      />
 
       {/* 広告配置プレースホルダー（タスク 18 で実装予定） */}
       {group.ad_enabled && (

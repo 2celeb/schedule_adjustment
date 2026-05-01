@@ -122,12 +122,14 @@
     "6": "Sat"
   },
   "summary": {
+    "title": "Summary",
     "ok": "✓",
     "maybe": "?",
     "ng": "✗",
     "none": "−",
     "allAvailable": "All available",
-    "oneUnavailable": "1 unavailable"
+    "oneUnavailable": "1 unavailable",
+    "noData": "−"
   },
   "schedule": {
     "title": "Schedule",

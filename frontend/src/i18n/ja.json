@@ -122,12 +122,14 @@
     "6": "土"
   },
   "summary": {
+    "title": "集計",
     "ok": "○",
     "maybe": "△",
     "ng": "×",
     "none": "−",
     "allAvailable": "全員参加可能",
-    "oneUnavailable": "1名のみ参加不可"
+    "oneUnavailable": "1名のみ参加不可",
+    "noData": "−"
   },
   "schedule": {
     "title": "スケジュール",

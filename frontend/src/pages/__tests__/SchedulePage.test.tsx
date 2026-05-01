@@ -27,6 +27,37 @@ vi.mock("@/hooks/useCurrentUser", () => ({
   }),
 }));
 
+/** useAvailabilities フックをモック */
+vi.mock("@/hooks/useAvailabilities", () => ({
+  useAvailabilities: () => ({
+    availabilities: {},
+    eventDays: {},
+    summary: {},
+    isLoading: false,
+    isError: false,
+    updateAvailability: vi.fn(),
+  }),
+  cycleStatus: (current: number | null) => {
+    if (current === null) return 1;
+    if (current === 1) return 0;
+    if (current === 0) return -1;
+    return null;
+  },
+}));
+
+/** formatMonthKey をモック */
+vi.mock("@/components/availability/AvailabilityBoard", async () => {
+  const actual = await vi.importActual("@/components/availability/AvailabilityBoard");
+  return {
+    ...actual,
+    formatMonthKey: (date: Date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      return `${y}-${m}`;
+    },
+  };
+});
+
 /** テスト用グループデータ */
 const mockGroup = {
   id: 1,
@@ -143,11 +174,11 @@ describe("SchedulePage", () => {
     render(<SchedulePage />, { wrapper: createWrapper() });
 
     expect(screen.getByText("メンバー選択")).toBeInTheDocument();
-    expect(screen.getByText("えれん")).toBeInTheDocument();
-    expect(screen.getByText("みかさ")).toBeInTheDocument();
+    expect(screen.getAllByText("えれん").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("みかさ").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("Availability_Board プレースホルダーを表示する", () => {
+  it("Availability_Board を表示する", () => {
     mockUseGroup.mockReturnValue({
       group: mockGroup,
       members: mockMembers,
@@ -159,10 +190,7 @@ describe("SchedulePage", () => {
     render(<SchedulePage />, { wrapper: createWrapper() });
 
     expect(
-      screen.getByTestId("availability-board-placeholder"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("参加可否ボードはここに表示されます"),
+      screen.getByTestId("availability-board"),
     ).toBeInTheDocument();
   });
 
