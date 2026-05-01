@@ -25,6 +25,7 @@ import apiClient from "@/api/client";
 import { useAutoScheduleRule } from "@/hooks/useGroupSettings";
 import AutoScheduleRuleForm from "@/components/events/AutoScheduleRuleForm";
 import NotificationSettings from "@/components/settings/NotificationSettings";
+import CalendarSyncSettings from "@/components/settings/CalendarSyncSettings";
 
 /** グループ情報の型 */
 interface GroupInfo {
@@ -40,6 +41,13 @@ interface GroupInfo {
   threshold_target: string;
   ad_enabled: boolean;
   locale: string;
+}
+
+/** Owner ユーザー情報の型（カレンダー連携用） */
+interface OwnerInfo {
+  id: number;
+  google_calendar_scope: string | null;
+  google_account_id: string | null;
 }
 
 /** タブパネルコンポーネント */
@@ -71,7 +79,7 @@ export default function SettingsPage() {
     data: groupData,
     isLoading: isGroupLoading,
     isError: isGroupError,
-  } = useQuery<{ group: GroupInfo }>({
+  } = useQuery<{ group: GroupInfo; owner?: OwnerInfo }>({
     queryKey: ["group", share_token],
     queryFn: async () => {
       const response = await apiClient.get(`/groups/${share_token}`);
@@ -81,6 +89,7 @@ export default function SettingsPage() {
   });
 
   const group = groupData?.group;
+  const owner = groupData?.owner;
 
   // 自動確定ルール
   const {
@@ -128,6 +137,7 @@ export default function SettingsPage() {
         >
           <Tab label={t("autoSchedule.title")} id="settings-tab-0" />
           <Tab label={t("notification.title")} id="settings-tab-1" />
+          <Tab label={t("calendar.sync")} id="settings-tab-2" />
         </Tabs>
 
         {/* 自動確定ルール */}
@@ -158,6 +168,16 @@ export default function SettingsPage() {
               isUpdating={isUpdating}
             />
           )}
+        </TabPanel>
+
+        {/* カレンダー連携設定 */}
+        <TabPanel value={activeTab} index={2}>
+          <CalendarSyncSettings
+            shareToken={share_token!}
+            userId={group.owner_id}
+            googleCalendarScope={owner?.google_calendar_scope ?? null}
+            isGoogleConnected={!!owner?.google_account_id}
+            />
         </TabPanel>
       </Paper>
     </Container>

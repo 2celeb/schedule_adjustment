@@ -35,6 +35,10 @@ Rails.application.routes.draw do
       # GET: 全メンバーの参加可否取得（認証不要）
       # PUT: 参加可否の一括更新（ゆるい識別 or Cookie）
       resource :availabilities, only: [:show, :update]
+
+      # カレンダー同期（タスク 16.6）
+      # POST: 強制同期（今すぐ同期）— キャッシュを無視して FreeBusy を再取得
+      resource :calendar_sync, only: [:create]
     end
 
     # update, regenerate_token は id でアクセス（Owner のみ、Cookie 認証）

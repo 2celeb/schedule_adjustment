@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2026_05_01_000010) do
+ActiveRecord::Schema[7.2].define(version: 2026_05_01_000011) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -72,16 +72,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_01_000010) do
     t.index ["user_id"], name: "index_calendar_caches_on_user_id"
   end
 
-  create_table "discord_configs", force: :cascade do |t|
-    t.bigint "group_id", null: false
-    t.string "guild_id"
-    t.string "default_channel_id"
-    t.string "remind_channel_id"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.index ["group_id"], name: "index_discord_configs_on_group_id", unique: true
-  end
-
   create_table "event_days", force: :cascade do |t|
     t.bigint "group_id", null: false
     t.date "date", null: false
@@ -110,6 +100,7 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_01_000010) do
     t.string "locale", default: "ja"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "google_sub_calendar_id"
     t.index ["owner_id"], name: "index_groups_on_owner_id"
     t.index ["share_token"], name: "index_groups_on_share_token", unique: true
   end
@@ -159,7 +150,6 @@ ActiveRecord::Schema[7.2].define(version: 2026_05_01_000010) do
   add_foreign_key "availability_logs", "users"
   add_foreign_key "calendar_caches", "groups"
   add_foreign_key "calendar_caches", "users"
-  add_foreign_key "discord_configs", "groups"
   add_foreign_key "event_days", "groups"
   add_foreign_key "groups", "users", column: "owner_id"
   add_foreign_key "memberships", "groups"
