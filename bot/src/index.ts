@@ -12,6 +12,7 @@ import settings from "./commands/settings.js";
 import { handleReady } from "./events/ready.js";
 import { handleGuildMemberAdd } from "./events/guildMemberAdd.js";
 import { handleGuildMemberRemove } from "./events/guildMemberRemove.js";
+import { startNotificationServer } from "./services/notificationServer.js";
 
 // Discord Bot エントリポイント
 // discord.js v14 を使用し、スラッシュコマンドのディスパッチと
@@ -111,9 +112,21 @@ client.login(token).catch((error) => {
   process.exit(1);
 });
 
+// 通知受信用 HTTP サーバーを起動
+// Rails の Sidekiq ジョブからの通知リクエストを受信する
+let notificationServer: ReturnType<typeof startNotificationServer> | null = null;
+
+client.once(Events.ClientReady, () => {
+  notificationServer = startNotificationServer(client);
+});
+
 // Graceful Shutdown: SIGINT / SIGTERM でクリーンに終了
 function shutdown(signal: string): void {
   console.log(`[Bot] ${signal} を受信しました。シャットダウンします...`);
+  if (notificationServer) {
+    notificationServer.close();
+    console.log("[Bot] 通知受信サーバーを停止しました。");
+  }
   client.destroy();
   console.log("[Bot] Discord クライアントを切断しました。");
   process.exit(0);

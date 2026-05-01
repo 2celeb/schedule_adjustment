@@ -86,7 +86,16 @@
     "remindDaysBefore": "Remind days before confirmation",
     "activityNotifyHoursBefore": "Notify hours before activity",
     "activityNotifyMessage": "Day-of notification message",
-    "channel": "Notification channel"
+    "channel": "Notification channel",
+    "remindDaysHelp": "How many days before confirmation to start reminders",
+    "notifyHoursHelp": "How many hours before activity to send notification",
+    "channelHelp": "Leave empty to use the default channel",
+    "messagePlaceholder": "Leave empty to use the default message",
+    "messageHelp": "Message posted on the day of activity",
+    "error": {
+      "remindDaysNegative": "Remind days must be 0 or greater.",
+      "notifyHoursNegative": "Notify hours must be 0 or greater."
+    }
   },
   "auth": {
     "loginWithGoogle": "Sign in with Google",

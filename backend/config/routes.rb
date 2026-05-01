@@ -61,6 +61,12 @@ Rails.application.routes.draw do
           get :weekly_status
         end
       end
+
+      # 通知トリガー（タスク 14.1, 14.2）
+      namespace :notifications do
+        post :remind
+        post :daily
+      end
     end
   end
 

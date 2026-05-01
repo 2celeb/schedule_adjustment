@@ -86,7 +86,16 @@
     "remindDaysBefore": "リマインド開始日（確定日のN日前）",
     "activityNotifyHoursBefore": "当日通知（活動開始のN時間前）",
     "activityNotifyMessage": "当日通知メッセージ",
-    "channel": "通知チャンネル"
+    "channel": "通知チャンネル",
+    "remindDaysHelp": "確定日の何日前からリマインドを開始するか",
+    "notifyHoursHelp": "活動開始の何時間前に通知するか",
+    "channelHelp": "空欄の場合はデフォルトチャンネルに投稿されます",
+    "messagePlaceholder": "空欄の場合はデフォルトメッセージが使用されます",
+    "messageHelp": "活動日当日に投稿されるメッセージ",
+    "error": {
+      "remindDaysNegative": "リマインド開始日は0以上で指定してください。",
+      "notifyHoursNegative": "当日通知時間は0以上で指定してください。"
+    }
   },
   "auth": {
     "loginWithGoogle": "Google でログイン",

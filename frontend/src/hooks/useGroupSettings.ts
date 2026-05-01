@@ -53,6 +53,10 @@ export interface UpdateRuleParams {
   week_start_day?: number;
   confirm_days_before?: number;
   confirm_time?: string;
+  remind_days_before_confirm?: number | null;
+  activity_notify_hours_before?: number | null;
+  activity_notify_channel_id?: string | null;
+  activity_notify_message?: string | null;
 }
 
 /** 活動日追加パラメータ */

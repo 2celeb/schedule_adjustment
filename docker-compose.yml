@@ -37,6 +37,7 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
       - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:-dev_internal_api_token}
+      - BOT_INTERNAL_URL=http://bot:3001
     depends_on:
       db:
         condition: service_healthy
@@ -66,6 +67,7 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
       - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:-dev_internal_api_token}
+      - BOT_INTERNAL_URL=http://bot:3001
     depends_on:
       db:
         condition: service_healthy
@@ -124,6 +126,8 @@ services:
     build:
       context: ./bot
       dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
     volumes:
       - ./bot:/app
       - bot_node_modules:/app/node_modules
@@ -134,6 +138,8 @@ services:
       - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
       - API_BASE_URL=http://api:3000
       - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN:-dev_internal_api_token}
+      - BOT_HTTP_PORT=3001
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:5173}
     depends_on:
       - api
     restart: unless-stopped

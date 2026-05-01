@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { Typography, Container } from "@mui/material";
 import SchedulePage from "@/pages/SchedulePage";
 import OAuthCallbackPage from "@/pages/OAuthCallbackPage";
+import SettingsPage from "@/pages/SettingsPage";
 
 /** ランディングページ（シンプルなウェルカムメッセージ） */
 function LandingPage() {
@@ -29,6 +30,7 @@ function App() {
   return (
     <Routes>
       <Route path="/oauth/callback" element={<OAuthCallbackPage />} />
+      <Route path="/groups/:share_token/settings" element={<SettingsPage />} />
       <Route path="/:share_token" element={<SchedulePage />} />
       <Route path="/" element={<LandingPage />} />
     </Routes>
