@@ -157,6 +157,77 @@ RSpec.describe "Api::Availabilities", type: :request do
         expect(json["error"]["code"]).to eq("NOT_FOUND")
       end
     end
+
+    context "グループ間コメント非公開（要件 10.3）" do
+      let!(:other_group) do
+        create(:group, :with_times, :with_threshold,
+               owner: create(:user, display_name: "他グループオーナー"),
+               name: "他グループ",
+               locale: "ja")
+      end
+      let!(:shared_member) { create(:user, display_name: "共有メンバー") }
+      let!(:membership_in_group) { create(:membership, user: shared_member, group: group) }
+      let!(:membership_in_other) { create(:membership, user: shared_member, group: other_group) }
+
+      before do
+        # 同一ユーザーが両グループに異なるコメント付きで参加可否を登録
+        create(:availability, :ng, user: shared_member, group: group, date: today, comment: "グループAの理由")
+        create(:availability, :ng, user: shared_member, group: other_group, date: today, comment: "グループBの秘密の理由")
+      end
+
+      it "グループ A の API レスポンスにグループ B のコメントが含まれない" do
+        get "/api/groups/#{group.share_token}/availabilities", params: { month: month_str }
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+
+        date_key = today.iso8601
+        avails = json["availabilities"][date_key]
+        member_data = avails[shared_member.id.to_s]
+
+        expect(member_data["comment"]).to eq("グループAの理由")
+        expect(member_data["comment"]).not_to eq("グループBの秘密の理由")
+      end
+
+      it "グループ B の API レスポンスにグループ A のコメントが含まれない" do
+        get "/api/groups/#{other_group.share_token}/availabilities", params: { month: month_str }
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+
+        date_key = today.iso8601
+        avails = json["availabilities"][date_key]
+        member_data = avails[shared_member.id.to_s]
+
+        expect(member_data["comment"]).to eq("グループBの秘密の理由")
+        expect(member_data["comment"]).not_to eq("グループAの理由")
+      end
+
+      it "レスポンスの全コメントが対象グループのものだけであることを保証する" do
+        # 別のメンバーも追加してコメントを設定
+        another_member = create(:user, display_name: "別メンバー")
+        create(:membership, user: another_member, group: group)
+        create(:availability, :maybe, user: another_member, group: group, date: today, comment: "グループAの別コメント")
+
+        get "/api/groups/#{group.share_token}/availabilities", params: { month: month_str }
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+
+        # レスポンス内の全コメントを収集
+        all_comments = []
+        json["availabilities"].each_value do |date_data|
+          date_data.each_value do |member_data|
+            all_comments << member_data["comment"] if member_data["comment"].present?
+          end
+        end
+
+        # グループ B のコメントが含まれていないことを確認
+        expect(all_comments).not_to include("グループBの秘密の理由")
+        expect(all_comments).to include("グループAの理由")
+        expect(all_comments).to include("グループAの別コメント")
+      end
+    end
   end
 
   describe "PUT /api/groups/:share_token/availabilities" do

@@ -299,6 +299,10 @@ module Api
       date_range.each { |d| result[d.iso8601] = {} }
 
       availabilities.each do |a|
+        # グループ間コメント非公開の保証（要件 10.3）
+        # 万が一別グループのデータが混入した場合に備えた防御的チェック
+        next unless a.group_id == @group.id
+
         date_key = a.date.iso8601
         result[date_key] ||= {}
         result[date_key][a.user_id.to_s] = {
