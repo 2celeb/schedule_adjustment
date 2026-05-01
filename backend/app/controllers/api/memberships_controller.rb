@@ -89,14 +89,12 @@ module Api
     end
 
     # Owner 権限チェック
-    # Cookie 認証済みユーザーが対象グループの Owner であることを確認する
+    # GroupPolicy を使用して Cookie 認証済みユーザーが対象グループの Owner であることを確認する
     def authorize_owner!
       return if performed?
 
-      group = @membership.group
-      session_user = current_user
-
-      return if session_user && group.owner_id == session_user.id
+      policy = GroupPolicy.new(current_user, @membership.group)
+      return if policy.update?
 
       render json: {
         error: {

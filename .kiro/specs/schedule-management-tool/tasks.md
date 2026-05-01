@@ -159,14 +159,14 @@
     - メンバー上限チェック: グループあたり最大20名、超過時は 422 エラー
     - _要件: 2.3, 2.4, 2.5, 2.6, 2.9_
 
-  - [-] 5.3 内部 API（Discord Bot → Rails）の実装
+  - [x] 5.3 内部 API（Discord Bot → Rails）の実装
     - Bot トークン認証ミドルウェアの作成
     - `POST /api/internal/groups`: グループ初回作成（Bot トークン認証）
     - `POST /api/internal/groups/:id/sync_members`: メンバー同期（Discord メンバーリストからの一括登録・更新）
     - `GET /api/internal/groups/:id/weekly_status`: 週次入力状況取得
     - _要件: 2.1, 2.3, 8.1_
 
-  - [~] 5.4 権限ポリシーの実装
+  - [x] 5.4 権限ポリシーの実装
     - `GroupPolicy`: Owner のみグループ設定変更、URL再生成を許可
     - `AvailabilityPolicy`: auth_locked ユーザーは Cookie 必須、過去日付は Owner のみ変更可
     - `EventDayPolicy`: Owner のみ活動日の追加・変更・削除を許可

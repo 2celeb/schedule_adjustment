@@ -152,8 +152,12 @@ module Api
               results[:updated] << { discord_user_id: discord_user_id, user_id: user.id }
             else
               # 新規メンバー: メンバーシップを作成
-              display_name = member_data[:display_name].presence || member_data[:discord_screen_name] || discord_user_id
-              user.update!(display_name: display_name) unless user.display_name.present?
+              # display_name が明示的に指定されている場合はそれを使用する
+              if member_data[:display_name].present?
+                user.update!(display_name: member_data[:display_name])
+              elsif user.display_name.blank?
+                user.update!(display_name: member_data[:discord_screen_name] || discord_user_id)
+              end
 
               Membership.create!(
                 user: user,
