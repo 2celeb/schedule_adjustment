@@ -327,8 +327,8 @@
   - Bot がサーバーに接続し、スラッシュコマンドが動作すること、初回設定フローでグループ・メンバーが登録されることを確認
   - すべてのテストが通ることを確認し、不明点があればユーザーに質問する
 
-- [ ] 13. 活動日設定・自動確定機能の実装
-  - [ ] 13.1 活動日 CRUD API の実装
+- [x] 13. 活動日設定・自動確定機能の実装
+  - [x] 13.1 活動日 CRUD API の実装
     - `Api::EventDaysController` を作成
     - `GET /api/groups/:id/event_days`: 活動日一覧取得（認証不要）
     - `POST /api/groups/:id/event_days`: 活動日手動追加（Owner のみ）
@@ -337,19 +337,19 @@
     - Event_Day のデフォルト時間適用: `start_time`/`end_time` が null の場合はグループの `default_start_time`/`default_end_time` を使用
     - _要件: 5.7, 5.8, 5.9_
 
-  - [ ]* 13.2 Event_Day デフォルト時間適用のプロパティテスト
+  - [-] 13.2 Event_Day デフォルト時間適用のプロパティテスト
     - **Property 13: Event_Day デフォルト時間適用**
     - 任意の Event_Day について、start_time/end_time が null の場合にグループデフォルト値が使用されることを検証
     - **Validates: 要件 5.9**
 
-  - [ ] 13.3 自動確定ルール API の実装
+  - [x] 13.3 自動確定ルール API の実装
     - `Api::AutoScheduleRulesController` を作成
     - `GET /api/groups/:id/auto_schedule_rule`: ルール取得（Owner のみ）
     - `PUT /api/groups/:id/auto_schedule_rule`: ルール更新（Owner のみ）
     - バリデーション: max_days_per_week（1〜7）、min_days_per_week（0〜max）、week_start_day（0〜6）、confirm_days_before（正の整数）
     - _要件: 5.2, 5.3, 5.4, 5.5_
 
-  - [ ] 13.4 AutoScheduleService の実装
+  - [x] 13.4 AutoScheduleService の実装
     - `AutoScheduleService` を作成: 自動確定ルールに基づいて活動日を決定するコアロジック
     - 当該週の参加可否データを集計し、ルールに基づいて活動日候補を選定
     - 制約充足: 週あたり活動日数が max 以下・min 以上、除外曜日は min 未達時を除き活動日にしない、優先度を下げる曜日は後回し
@@ -366,14 +366,14 @@
     - 任意の week_start_day と confirm_days_before について、計算された確定日が正しいことを検証
     - **Validates: 要件 5.4**
 
-  - [ ] 13.7 自動確定ジョブの実装
+  - [x] 13.7 自動確定ジョブの実装
     - `AutoConfirmJob` を作成: sidekiq-cron で確定時刻に実行
     - `AutoScheduleService` を呼び出し、活動日を確定（`confirmed: true`）
     - 確定後の処理: Discord チャンネルへの予定一覧投稿（内部 API 経由）
     - 失敗時は Sidekiq リトライ（最大3回）、全失敗時は Owner に Discord 通知
     - _要件: 5.6_
 
-  - [ ] 13.8 フロントエンド: 活動日設定 UI の実装
+  - [x] 13.8 フロントエンド: 活動日設定 UI の実装
     - `AutoScheduleRuleForm.tsx`: 自動確定ルール設定フォーム（最大/最低活動日数、優先度を下げる曜日、除外曜日、週の始まり、確定日、確定時刻）
     - `EventTimeEditor.tsx`: 活動時間の個別編集（Owner のみ）
     - `useGroupSettings.ts` フック: グループ設定データの取得・更新

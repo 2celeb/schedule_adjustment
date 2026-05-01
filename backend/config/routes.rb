@@ -42,7 +42,16 @@ Rails.application.routes.draw do
       member do
         post :regenerate_token
       end
+
+      # 活動日管理（タスク 13.1）
+      resources :event_days, only: [:index, :create]
+
+      # 自動確定ルール（タスク 13.3）
+      resource :auto_schedule_rule, only: [:show, :update]
     end
+
+    # 活動日の更新・削除（タスク 13.1）
+    resources :event_days, only: [:update, :destroy]
 
     # 内部 API（Discord Bot → Rails）（タスク 5.3）
     namespace :internal do

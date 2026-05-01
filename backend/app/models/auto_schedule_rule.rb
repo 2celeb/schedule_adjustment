@@ -3,6 +3,27 @@
 class AutoScheduleRule < ApplicationRecord
   belongs_to :group
 
+  # confirm_time は「時刻」（時間帯に依存しない値）として扱う
+  # PostgreSQL の time 型はタイムゾーンなしで保存されるが、
+  # Rails がデフォルトでタイムゾーン変換を適用してしまうため、
+  # 読み書き時に UTC として扱うことで本来の値を保持する
+  def confirm_time
+    raw = super
+    return nil unless raw
+
+    # Rails が適用したタイムゾーン変換を打ち消し、DB の生の値を返す
+    raw.utc
+  end
+
+  def confirm_time=(value)
+    if value.is_a?(String) && value.match?(/\A\d{1,2}:\d{2}\z/)
+      # "HH:MM" 形式の文字列を UTC として直接設定
+      super(Time.utc(2000, 1, 1, *value.split(":").map(&:to_i)))
+    else
+      super
+    end
+  end
+
   # バリデーション
   validates :max_days_per_week, numericality: { in: 1..7 }, allow_nil: true
   validates :min_days_per_week, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true

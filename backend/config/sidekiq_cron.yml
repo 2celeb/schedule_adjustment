@@ -1,0 +1,10 @@
+# sidekiq-cron スケジュール設定
+# 定期実行ジョブの定義
+
+# 活動日自動確定ジョブ
+# 毎時0分に実行し、確定タイミングに達したグループを処理する
+auto_confirm:
+  cron: "0 * * * *"
+  class: "AutoConfirmJob"
+  queue: "default"
+  description: "活動日の自動確定（確定タイミングに達したグループを処理）"
