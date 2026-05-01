@@ -18,7 +18,7 @@ vi.mock("@/api/client", () => ({
   },
 }));
 
-const mockedApiClient = vi.mocked(apiClient);
+const mockedApiClient = vi.mocked(apiClient, true);
 
 /** テスト用の QueryClient ラッパー */
 function createWrapper() {

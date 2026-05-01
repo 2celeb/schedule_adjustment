@@ -166,7 +166,7 @@ describe("AvailabilityBoard", () => {
 
     /* テーブル内の最初の日付行のセルを確認 */
     const table = screen.getByTestId("board-table");
-    const firstRow = within(table).getAllByTestId(/^date-row-/)[0];
+    const firstRow = within(table).getAllByTestId(/^date-row-/)[0]!;
     const cells = within(firstRow).getAllByTestId(/^cell-/);
 
     /* 全セルが未入力記号（−）を表示 */
@@ -237,8 +237,8 @@ describe("AvailabilityBoard", () => {
 
     /* テーブル内の最初のセルをクリック */
     const table = screen.getByTestId("board-table");
-    const firstRow = within(table).getAllByTestId(/^date-row-/)[0];
-    const firstCell = within(firstRow).getAllByTestId(/^cell-/)[0];
+    const firstRow = within(table).getAllByTestId(/^date-row-/)[0]!;
+    const firstCell = within(firstRow).getAllByTestId(/^cell-/)[0]!;
     await user.click(firstCell);
 
     expect(onCellClick).toHaveBeenCalledTimes(1);
@@ -248,7 +248,7 @@ describe("AvailabilityBoard", () => {
     render(<AvailabilityBoard {...defaultProps} />);
 
     const table = screen.getByTestId("board-table");
-    const firstRow = within(table).getAllByTestId(/^date-row-/)[0];
+    const firstRow = within(table).getAllByTestId(/^date-row-/)[0]!;
     const dateCell = within(firstRow).getByText(/\(.+\)/);
 
     /* 曜日が括弧内に表示される */

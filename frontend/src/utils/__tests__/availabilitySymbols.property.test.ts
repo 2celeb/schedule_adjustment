@@ -128,7 +128,8 @@ describe("Property 10: ロケール記号切り替え", () => {
           "-1": "ng",
           null: "none",
         };
-        const symbolFromSet = symbolSet[keyMap[String(status)]];
+        const key = String(status);
+        const symbolFromSet = symbolSet[keyMap[key] as keyof typeof symbolSet];
 
         expect(symbolFromFn).toBe(symbolFromSet);
       }),

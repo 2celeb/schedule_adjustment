@@ -22,7 +22,6 @@ import { useGroup } from "@/hooks/useGroup";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import {
   useAvailabilities,
-  cycleStatus,
 } from "@/hooks/useAvailabilities";
 import MemberSelector from "@/components/members/MemberSelector";
 import AvailabilityBoard, {

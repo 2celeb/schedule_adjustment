@@ -189,12 +189,6 @@ export default function AvailabilityBoard({
     [members],
   );
 
-  /* 全メンバー（Core → Sub の順） */
-  const orderedMembers = useMemo(
-    () => [...coreMembers, ...subMembers],
-    [coreMembers, subMembers],
-  );
-
   /* 選択中ユーザーが Owner かどうかを判定 */
   const isOwner = useMemo(() => {
     if (selectedUserId === null) return false;
@@ -265,12 +259,6 @@ export default function AvailabilityBoard({
     }
     return `${year}年${month}月`;
   }, [currentDate, locale]);
-
-  /* 現在の月キー（YYYY-MM） */
-  const currentMonth = useMemo(
-    () => formatMonthKey(currentDate),
-    [currentDate],
-  );
 
   /**
    * セルクリックハンドラー
