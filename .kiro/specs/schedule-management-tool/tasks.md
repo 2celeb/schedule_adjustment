@@ -337,7 +337,7 @@
     - Event_Day のデフォルト時間適用: `start_time`/`end_time` が null の場合はグループの `default_start_time`/`default_end_time` を使用
     - _要件: 5.7, 5.8, 5.9_
 
-  - [-] 13.2 Event_Day デフォルト時間適用のプロパティテスト
+  - [x] 13.2 Event_Day デフォルト時間適用のプロパティテスト
     - **Property 13: Event_Day デフォルト時間適用**
     - 任意の Event_Day について、start_time/end_time が null の場合にグループデフォルト値が使用されることを検証
     - **Validates: 要件 5.9**
