@@ -494,8 +494,8 @@
     - 任意の退会処理されたメンバーについて、anonymized=true、display_name が匿名化形式、トークン・Discord ID が null、availabilities が保持、一般メンバーから非表示、Owner から閲覧可能であることを検証
     - **Validates: 要件 10.4, 10.5, 10.6**
 
-- [ ] 20. フロントエンド: 設定ページの統合
-  - [ ] 20.1 グループ設定ページの統合
+- [x] 20. フロントエンド: 設定ページの統合
+  - [x] 20.1 グループ設定ページの統合
     - `SettingsPage.tsx` に全設定コンポーネントを統合
     - `GroupSettingsForm.tsx`: グループ基本設定（グループ名、イベント名、基本活動時間、タイムゾーン、ロケール）
     - `ThresholdSettings.tsx`: 閾値設定（Threshold_N、対象: Core のみ / 全メンバー）

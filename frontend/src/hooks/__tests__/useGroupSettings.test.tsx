@@ -7,7 +7,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { useAutoScheduleRule, useEventDays } from "@/hooks/useGroupSettings";
+import { useAutoScheduleRule, useEventDays, useGroupUpdate } from "@/hooks/useGroupSettings";
 import apiClient from "@/api/client";
 
 /** apiClient をモック */
@@ -255,6 +255,61 @@ describe("useEventDays", () => {
 
     await waitFor(() => {
       expect(mockedApiClient.delete).toHaveBeenCalledWith("/event_days/1");
+    });
+  });
+});
+
+describe("useGroupUpdate", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("グループ設定を更新できる", async () => {
+    mockedApiClient.patch.mockResolvedValueOnce({ data: {} });
+
+    const { result } = renderHook(() => useGroupUpdate(1, "abc123"), {
+      wrapper: createWrapper(),
+    });
+
+    act(() => {
+      result.current.updateGroup({ name: "新しいグループ名" });
+    });
+
+    await waitFor(() => {
+      expect(mockedApiClient.patch).toHaveBeenCalledWith("/groups/1", {
+        name: "新しいグループ名",
+      });
+    });
+  });
+
+  it("groupId が undefined の場合でも関数は呼び出せる", () => {
+    const { result } = renderHook(() => useGroupUpdate(undefined, undefined), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.isUpdating).toBe(false);
+    expect(result.current.isError).toBe(false);
+  });
+
+  it("閾値設定を更新できる", async () => {
+    mockedApiClient.patch.mockResolvedValueOnce({ data: {} });
+
+    const { result } = renderHook(() => useGroupUpdate(1, "abc123"), {
+      wrapper: createWrapper(),
+    });
+
+    act(() => {
+      result.current.updateGroup({
+        threshold_n: 5,
+        threshold_target: "all",
+      });
+    });
+
+    await waitFor(() => {
+      expect(mockedApiClient.patch).toHaveBeenCalledWith("/groups/1", {
+        threshold_n: 5,
+        threshold_target: "all",
+      });
     });
   });
 });

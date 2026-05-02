@@ -43,6 +43,13 @@
     "defaultStartTime": "Default Start Time",
     "defaultEndTime": "Default End Time"
   },
+  "groupSettings": {
+    "title": "General Settings",
+    "error": {
+      "nameRequired": "Group name is required.",
+      "eventNameRequired": "Event name is required."
+    }
+  },
   "eventDay": {
     "title": "Event Day",
     "confirmed": "Confirmed",
@@ -54,12 +61,16 @@
   "threshold": {
     "title": "Threshold Settings",
     "count": "Threshold Count",
+    "countHelp": "Warning is shown when this many members are unavailable. Leave empty to disable.",
     "target": {
       "label": "Target",
       "core": "Core members only",
       "all": "All members"
     },
-    "warning": "Unavailable count exceeds threshold"
+    "warning": "Unavailable count exceeds threshold",
+    "error": {
+      "countMin": "Threshold count must be 1 or greater."
+    }
   },
   "autoSchedule": {
     "title": "Auto-Schedule Rules",
@@ -153,6 +164,11 @@
     "noGroup": "Group not found",
     "boardPlaceholder": "Availability board will be displayed here",
     "adPlaceholder": "Ad area"
+  },
+  "settings": {
+    "ownerOnly": "This settings page is accessible only to the Owner.",
+    "loginRequired": "Please sign in with Google to change settings.",
+    "backToSchedule": "Back to schedule page"
   },
   "ad": {
     "label": "Ad"

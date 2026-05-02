@@ -43,6 +43,13 @@
     "defaultStartTime": "デフォルト開始時間",
     "defaultEndTime": "デフォルト終了時間"
   },
+  "groupSettings": {
+    "title": "グループ基本設定",
+    "error": {
+      "nameRequired": "グループ名を入力してください。",
+      "eventNameRequired": "イベント名を入力してください。"
+    }
+  },
   "eventDay": {
     "title": "活動日",
     "confirmed": "確定済み",
@@ -54,12 +61,16 @@
   "threshold": {
     "title": "閾値設定",
     "count": "閾値人数",
+    "countHelp": "この人数以上が参加不可の場合に警告表示されます。空欄で無効。",
     "target": {
       "label": "対象",
       "core": "コアメンバーのみ",
       "all": "全メンバー"
     },
-    "warning": "参加不可が閾値以上です"
+    "warning": "参加不可が閾値以上です",
+    "error": {
+      "countMin": "閾値人数は1以上で指定してください。"
+    }
   },
   "autoSchedule": {
     "title": "自動確定ルール",
@@ -153,6 +164,11 @@
     "noGroup": "グループが見つかりません",
     "boardPlaceholder": "参加可否ボードはここに表示されます",
     "adPlaceholder": "広告エリア"
+  },
+  "settings": {
+    "ownerOnly": "この設定ページは Owner のみアクセスできます。",
+    "loginRequired": "設定を変更するには Google 認証でログインしてください。",
+    "backToSchedule": "スケジュールページに戻る"
   },
   "ad": {
     "label": "広告"

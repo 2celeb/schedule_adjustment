@@ -17,12 +17,15 @@ import {
   Paper,
   CircularProgress,
   Alert,
-  Divider,
+  Button,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/api/client";
-import { useAutoScheduleRule } from "@/hooks/useGroupSettings";
+import { useAutoScheduleRule, useGroupUpdate } from "@/hooks/useGroupSettings";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import GroupSettingsForm from "@/components/settings/GroupSettingsForm";
+import ThresholdSettings from "@/components/settings/ThresholdSettings";
 import AutoScheduleRuleForm from "@/components/events/AutoScheduleRuleForm";
 import NotificationSettings from "@/components/settings/NotificationSettings";
 import CalendarSyncSettings from "@/components/settings/CalendarSyncSettings";
@@ -38,7 +41,7 @@ interface GroupInfo {
   default_start_time: string | null;
   default_end_time: string | null;
   threshold_n: number | null;
-  threshold_target: string;
+  threshold_target: "core" | "all";
   ad_enabled: boolean;
   locale: string;
 }
@@ -74,7 +77,10 @@ export default function SettingsPage() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
 
-  // グループ情報を取得
+  /* Owner 認証チェック（Cookie セッション） */
+  const { selectedUserId, isAuthenticated, isLoading: isAuthLoading } = useCurrentUser();
+
+  /* グループ情報を取得 */
   const {
     data: groupData,
     isLoading: isGroupLoading,
@@ -91,16 +97,22 @@ export default function SettingsPage() {
   const group = groupData?.group;
   const owner = groupData?.owner;
 
-  // 自動確定ルール
+  /* グループ設定更新 */
+  const {
+    updateGroup,
+    isUpdating: isGroupUpdating,
+  } = useGroupUpdate(group?.id, share_token);
+
+  /* 自動確定ルール */
   const {
     rule,
     isLoading: isRuleLoading,
     updateRule,
-    isUpdating,
+    isUpdating: isRuleUpdating,
   } = useAutoScheduleRule(group?.id);
 
-  // ローディング中
-  if (isGroupLoading) {
+  /* ローディング中（認証確認 + グループ情報取得） */
+  if (isAuthLoading || isGroupLoading) {
     return (
       <Container maxWidth="md" sx={{ py: 4, textAlign: "center" }}>
         <CircularProgress />
@@ -109,11 +121,35 @@ export default function SettingsPage() {
     );
   }
 
-  // エラー
+  /* グループが見つからない */
   if (isGroupError || !group) {
     return (
       <Container maxWidth="md" sx={{ py: 4 }}>
         <Alert severity="error">{t("schedule.noGroup")}</Alert>
+      </Container>
+    );
+  }
+
+  /* Owner 認証チェック: Cookie セッションが無効、または選択ユーザーが Owner でない場合 */
+  const isOwner = isAuthenticated && selectedUserId === group.owner_id;
+
+  if (!isOwner) {
+    return (
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {t("settings.ownerOnly", "この設定ページは Owner のみアクセスできます。")}
+        </Alert>
+        {!isAuthenticated && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {t("settings.loginRequired", "設定を変更するには Google 認証でログインしてください。")}
+          </Typography>
+        )}
+        <Button
+          variant="outlined"
+          href={`/${share_token}`}
+        >
+          {t("settings.backToSchedule", "スケジュールページに戻る")}
+        </Button>
       </Container>
     );
   }
@@ -135,13 +171,37 @@ export default function SettingsPage() {
           scrollButtons="auto"
           sx={{ borderBottom: 1, borderColor: "divider" }}
         >
-          <Tab label={t("autoSchedule.title")} id="settings-tab-0" />
-          <Tab label={t("notification.title")} id="settings-tab-1" />
-          <Tab label={t("calendar.sync")} id="settings-tab-2" />
+          <Tab
+            label={t("groupSettings.title", "グループ基本設定")}
+            id="settings-tab-0"
+          />
+          <Tab label={t("threshold.title")} id="settings-tab-1" />
+          <Tab label={t("autoSchedule.title")} id="settings-tab-2" />
+          <Tab label={t("notification.title")} id="settings-tab-3" />
+          <Tab label={t("calendar.sync")} id="settings-tab-4" />
         </Tabs>
 
-        {/* 自動確定ルール */}
+        {/* グループ基本設定 */}
         <TabPanel value={activeTab} index={0}>
+          <GroupSettingsForm
+            group={group}
+            onUpdate={updateGroup}
+            isUpdating={isGroupUpdating}
+          />
+        </TabPanel>
+
+        {/* 閾値設定 */}
+        <TabPanel value={activeTab} index={1}>
+          <ThresholdSettings
+            thresholdN={group.threshold_n}
+            thresholdTarget={group.threshold_target}
+            onUpdate={updateGroup}
+            isUpdating={isGroupUpdating}
+          />
+        </TabPanel>
+
+        {/* 自動確定ルール */}
+        <TabPanel value={activeTab} index={2}>
           {isRuleLoading ? (
             <Box sx={{ textAlign: "center", py: 4 }}>
               <CircularProgress size={24} />
@@ -150,13 +210,13 @@ export default function SettingsPage() {
             <AutoScheduleRuleForm
               rule={rule}
               onUpdate={updateRule}
-              isUpdating={isUpdating}
+              isUpdating={isRuleUpdating}
             />
           )}
         </TabPanel>
 
         {/* 通知設定 */}
-        <TabPanel value={activeTab} index={1}>
+        <TabPanel value={activeTab} index={3}>
           {isRuleLoading ? (
             <Box sx={{ textAlign: "center", py: 4 }}>
               <CircularProgress size={24} />
@@ -165,19 +225,19 @@ export default function SettingsPage() {
             <NotificationSettings
               rule={rule}
               onUpdate={updateRule}
-              isUpdating={isUpdating}
+              isUpdating={isRuleUpdating}
             />
           )}
         </TabPanel>
 
         {/* カレンダー連携設定 */}
-        <TabPanel value={activeTab} index={2}>
+        <TabPanel value={activeTab} index={4}>
           <CalendarSyncSettings
             shareToken={share_token!}
             userId={group.owner_id}
             googleCalendarScope={owner?.google_calendar_scope ?? null}
             isGoogleConnected={!!owner?.google_account_id}
-            />
+          />
         </TabPanel>
       </Paper>
     </Container>

@@ -138,6 +138,56 @@ export function useAutoScheduleRule(
   };
 }
 
+/** グループ設定更新パラメータ */
+export interface UpdateGroupParams {
+  name?: string;
+  event_name?: string;
+  default_start_time?: string | null;
+  default_end_time?: string | null;
+  timezone?: string;
+  locale?: string;
+  threshold_n?: number | null;
+  threshold_target?: "core" | "all";
+}
+
+/** useGroupUpdate フックの戻り値 */
+export interface UseGroupUpdateResult {
+  updateGroup: (params: UpdateGroupParams) => void;
+  isUpdating: boolean;
+  isError: boolean;
+}
+
+/**
+ * グループ設定更新フック
+ *
+ * PATCH /api/groups/:id でグループ基本設定を更新する。
+ *
+ * @param groupId - グループ ID
+ * @param shareToken - グループの共有トークン（キャッシュ無効化用）
+ * @returns 更新関数、ローディング・エラー状態
+ */
+export function useGroupUpdate(
+  groupId: number | undefined,
+  shareToken: string | undefined,
+): UseGroupUpdateResult {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: async (params: UpdateGroupParams) => {
+      await apiClient.patch(`/groups/${groupId}`, params);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["group", shareToken] });
+    },
+  });
+
+  return {
+    updateGroup: (params: UpdateGroupParams) => mutation.mutate(params),
+    isUpdating: mutation.isPending,
+    isError: mutation.isError,
+  };
+}
+
 /**
  * 活動日取得・管理フック
  *
