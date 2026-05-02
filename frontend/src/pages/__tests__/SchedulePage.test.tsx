@@ -194,7 +194,7 @@ describe("SchedulePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("広告が有効な場合に広告プレースホルダーを表示する", () => {
+  it("広告が有効な場合に広告コンポーネントを表示する", () => {
     mockUseGroup.mockReturnValue({
       group: { ...mockGroup, ad_enabled: true },
       members: mockMembers,
@@ -205,11 +205,13 @@ describe("SchedulePage", () => {
 
     render(<SchedulePage />, { wrapper: createWrapper() });
 
-    expect(screen.getByTestId("ad-placeholder")).toBeInTheDocument();
-    expect(screen.getByText("広告エリア")).toBeInTheDocument();
+    /* AdPlacement がデスクトップまたはモバイルで表示される */
+    const desktopAd = screen.queryByTestId("ad-placement-desktop");
+    const mobileAd = screen.queryByTestId("ad-placement-mobile");
+    expect(desktopAd || mobileAd).toBeTruthy();
   });
 
-  it("広告が無効な場合に広告プレースホルダーを表示しない", () => {
+  it("広告が無効な場合に広告コンポーネントを表示しない", () => {
     mockUseGroup.mockReturnValue({
       group: { ...mockGroup, ad_enabled: false },
       members: mockMembers,
@@ -220,7 +222,8 @@ describe("SchedulePage", () => {
 
     render(<SchedulePage />, { wrapper: createWrapper() });
 
-    expect(screen.queryByTestId("ad-placeholder")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("ad-placement-desktop")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("ad-placement-mobile")).not.toBeInTheDocument();
   });
 
   it("share_token を useGroup に渡す", () => {

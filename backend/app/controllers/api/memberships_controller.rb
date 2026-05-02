@@ -2,16 +2,17 @@
 
 module Api
   # メンバー管理コントローラー
-  # メンバー一覧取得、役割変更を提供する
+  # メンバー一覧取得、役割変更、退会処理を提供する
   #
   # エンドポイント:
   # - GET /api/groups/:share_token/members — メンバー一覧取得（認証不要）
   # - PATCH /api/memberships/:id — メンバー役割変更（Owner のみ、Cookie 認証）
+  # - DELETE /api/memberships/:id — メンバー退会処理（Owner のみ、Cookie 認証）
   class MembershipsController < ApplicationController
     before_action :set_group, only: [:index]
-    before_action :set_membership, only: [:update]
-    before_action :authenticate_session!, only: [:update]
-    before_action :authorize_owner!, only: [:update]
+    before_action :set_membership, only: [:update, :destroy]
+    before_action :authenticate_session!, only: [:update, :destroy]
+    before_action :authorize_owner!, only: [:update, :destroy]
 
     # メンバー上限
     MAX_MEMBERS_PER_GROUP = 20
@@ -58,6 +59,24 @@ module Api
       @membership.update!(role: role)
 
       render json: { membership: serialize_membership(@membership) }
+    end
+
+    # DELETE /api/memberships/:id
+    # メンバーを退会処理する（Owner のみ）
+    # MemberAnonymizer サービスを使用してユーザー情報を匿名化する
+    def destroy
+      result = MemberAnonymizer.new(@membership.user, @membership.group).call
+
+      if result[:success]
+        head :no_content
+      else
+        render json: {
+          error: {
+            code: "UNPROCESSABLE_ENTITY",
+            message: result[:error]
+          }
+        }, status: :unprocessable_entity
+      end
     end
 
     private

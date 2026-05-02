@@ -16,6 +16,10 @@ module Api
     #
     # パラメータ:
     #   month: 対象月（YYYY-MM 形式、デフォルト: 当月）
+    #
+    # 退会メンバーの可視性制御（要件 10.6）:
+    # - 一般メンバーには退会メンバーのデータを非表示
+    # - Owner には退会メンバーのデータを「退会済みメンバーX」として閲覧可能
     def show
       month = parse_month(params[:month])
       return if performed?
@@ -25,12 +29,27 @@ module Api
       members = load_members
       availabilities = load_availabilities(date_range)
       event_days = load_event_days(date_range)
+
+      # 退会メンバーの可視性制御（要件 10.6）
+      is_owner = request_user_is_owner?
+      active_user_ids = members.map(&:user_id).to_set
+
+      # Owner の場合は退会メンバー（匿名化済み）のデータも含める
+      anonymized_users = []
+      visible_user_ids = active_user_ids.dup
+      if is_owner
+        anonymized_users = load_anonymized_users_with_availabilities(date_range)
+        anonymized_users.each { |u| visible_user_ids.add(u.id) }
+      end
+
+      visible_availabilities = availabilities.select { |a| visible_user_ids.include?(a.user_id) }
+
       summary = AvailabilityAggregator.new(@group, date_range).call
 
       render json: {
         group: serialize_group(@group),
-        members: members.map { |m| serialize_member(m) },
-        availabilities: serialize_availabilities(availabilities, date_range),
+        members: serialize_members_with_anonymized(members, anonymized_users),
+        availabilities: serialize_availabilities(visible_availabilities, date_range),
         event_days: serialize_event_days(event_days),
         summary: summary
       }
@@ -133,6 +152,32 @@ module Api
     # グループのメンバーを取得する（メンバーシップ経由）
     def load_members
       @group.memberships.includes(:user).order(:created_at)
+    end
+
+    # 退会メンバー（匿名化済み）のユーザーを取得する
+    # メンバーシップは削除されているが、availabilities レコードが残っているユーザー
+    # 対象月の日付範囲でスコープし、不要なデータの読み込みを防ぐ
+    #
+    # @param date_range [Range<Date>] 対象の日付範囲
+    # @return [Array<User>] 退会メンバーのユーザー一覧
+    def load_anonymized_users_with_availabilities(date_range)
+      member_user_ids = @group.memberships.pluck(:user_id)
+      anonymized_user_ids = @group.availabilities
+        .where(date: date_range)
+        .where.not(user_id: member_user_ids)
+        .distinct
+        .pluck(:user_id)
+
+      User.where(id: anonymized_user_ids, anonymized: true)
+    end
+
+    # リクエスト元ユーザーが Owner かどうかを判定する
+    # Cookie セッションまたは X-User-Id ヘッダーから判定する
+    def request_user_is_owner?
+      user = current_user_or_loose
+      return false unless user
+
+      @group.owner_id == user.id
     end
 
     # 指定期間の参加可否を取得する
@@ -290,6 +335,29 @@ module Api
         role: membership.role,
         auth_locked: user.auth_locked
       }
+    end
+
+    # メンバー一覧のシリアライズ（退会メンバー含む）
+    # 現在のメンバーシップ + 退会メンバー（匿名化済み）を結合してシリアライズする
+    #
+    # @param memberships [Array<Membership>] 現在のメンバーシップ一覧
+    # @param anonymized_users [Array<User>] 退会メンバーのユーザー一覧
+    # @return [Array<Hash>] シリアライズされたメンバー情報の配列
+    def serialize_members_with_anonymized(memberships, anonymized_users)
+      result = memberships.map { |m| serialize_member(m) }
+
+      anonymized_users.each do |user|
+        result << {
+          id: user.id,
+          display_name: user.display_name,
+          discord_screen_name: nil,
+          role: "withdrawn",
+          auth_locked: false,
+          anonymized: true
+        }
+      end
+
+      result
     end
 
     # 参加可否データのシリアライズ

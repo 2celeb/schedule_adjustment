@@ -23,7 +23,7 @@ Rails.application.routes.draw do
     end
 
     # メンバー管理（タスク 5.2）
-    resources :memberships, only: [:update]
+    resources :memberships, only: [:update, :destroy]
 
     # グループ関連（タスク 5.1）
     # show は share_token でアクセス（認証不要）

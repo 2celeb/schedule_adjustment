@@ -2,10 +2,9 @@
  * メインスケジュールページ
  *
  * URL パラメータから share_token を取得し、グループ情報を読み込む。
- * メンバー選択バー + Availability_Board + 広告配置プレースホルダーの
- * レイアウトを構成する。
+ * メンバー選択バー + Availability_Board + 広告配置のレイアウトを構成する。
  *
- * 要件: 1.1, 4.3, 3.1, 3.2
+ * 要件: 1.1, 4.3, 3.1, 3.2, 9.1, 9.2, 9.3, 9.4
  */
 import { useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
@@ -15,7 +14,6 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  Paper,
 } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { useGroup } from "@/hooks/useGroup";
@@ -27,6 +25,7 @@ import MemberSelector from "@/components/members/MemberSelector";
 import AvailabilityBoard, {
   formatMonthKey,
 } from "@/components/availability/AvailabilityBoard";
+import AdPlacement from "@/components/ads/AdPlacement";
 import type { SupportedLocale, AvailabilityStatus } from "@/utils/availabilitySymbols";
 
 export default function SchedulePage() {
@@ -39,6 +38,9 @@ export default function SchedulePage() {
   const [currentMonth, setCurrentMonth] = useState<string>(
     () => formatMonthKey(new Date()),
   );
+
+  /* ユーザーが Availability_Status を入力中かどうか（広告制御用） */
+  const [isEditing, setIsEditing] = useState(false);
 
   /* 参加可否データの取得・更新 */
   const {
@@ -56,12 +58,15 @@ export default function SchedulePage() {
   /* ステータス変更ハンドラー */
   const handleStatusChange = useCallback(
     (date: string, memberId: number, newStatus: AvailabilityStatus) => {
+      setIsEditing(true);
       updateAvailability({
         userId: memberId,
         date,
         status: newStatus,
         comment: null,
       });
+      /* 短い遅延後に入力中フラグを解除 */
+      setTimeout(() => setIsEditing(false), 2000);
     },
     [updateAvailability],
   );
@@ -155,24 +160,12 @@ export default function SchedulePage() {
         onMonthChange={handleMonthChange}
       />
 
-      {/* 広告配置プレースホルダー（タスク 18 で実装予定） */}
-      {group.ad_enabled && (
-        <Paper
-          variant="outlined"
-          sx={{
-            p: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            bgcolor: "grey.50",
-          }}
-          data-testid="ad-placeholder"
-        >
-          <Typography variant="body2" color="text.secondary">
-            {t("schedule.adPlaceholder")}
-          </Typography>
-        </Paper>
-      )}
+      {/* 広告配置（デスクトップ: ヘッダー下バナー） */}
+      <AdPlacement
+        adEnabled={group.ad_enabled}
+        isEditing={isEditing}
+        testMode={!import.meta.env.VITE_ADSENSE_CLIENT_ID}
+      />
     </Container>
   );
 }
