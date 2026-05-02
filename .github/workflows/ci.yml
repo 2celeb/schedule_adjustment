@@ -60,6 +60,12 @@ jobs:
       ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY: ci_primary_key_for_testing_only
       ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY: ci_deterministic_key_for_testing
       ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT: ci_key_derivation_salt_testing
+      GOOGLE_CLIENT_ID: ci_dummy_google_client_id
+      GOOGLE_CLIENT_SECRET: ci_dummy_google_client_secret
+      DISCORD_BOT_TOKEN: ci_dummy_discord_bot_token
+      DISCORD_CLIENT_ID: ci_dummy_discord_client_id
+      DISCORD_CLIENT_SECRET: ci_dummy_discord_client_secret
+      INTERNAL_API_TOKEN: ci_dummy_internal_api_token
 
     steps:
       - uses: actions/checkout@v4
@@ -160,7 +166,8 @@ jobs:
 
       - name: 依存関係インストール
         run: |
-          npm ci || (rm -rf node_modules && npm i --no-optional && npm i @rollup/rollup-linux-x64-gnu)
+          rm -f package-lock.json
+          npm install
 
       - name: Vitest テスト実行
         run: npm test
@@ -188,7 +195,8 @@ jobs:
 
       - name: 依存関係インストール
         run: |
-          npm ci || (rm -rf node_modules && npm i --no-optional && npm i @rollup/rollup-linux-x64-gnu)
+          rm -f package-lock.json
+          npm install
 
       - name: ESLint 実行
         run: npm run lint

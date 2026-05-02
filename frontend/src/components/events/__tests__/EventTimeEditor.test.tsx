@@ -80,7 +80,7 @@ describe("EventTimeEditor", () => {
     );
 
     /* 編集ボタンをクリック */
-    const editButton = screen.getAllByRole("button")[0];
+    const editButton = screen.getAllByRole("button")[0]!;
     await user.click(editButton);
 
     /* 時間入力フィールドが表示される */
@@ -100,12 +100,12 @@ describe("EventTimeEditor", () => {
     );
 
     /* 編集モードに入る */
-    const editButton = screen.getAllByRole("button")[0];
+    const editButton = screen.getAllByRole("button")[0]!;
     await user.click(editButton);
 
     /* キャンセルボタンをクリック（CloseIcon のボタン） */
     const buttons = screen.getAllByRole("button");
-    const cancelButton = buttons[buttons.length - 1]; // 最後のボタンがキャンセル
+    const cancelButton = buttons[buttons.length - 1]!; // 最後のボタンがキャンセル
     await user.click(cancelButton);
 
     /* 表示モードに戻る */

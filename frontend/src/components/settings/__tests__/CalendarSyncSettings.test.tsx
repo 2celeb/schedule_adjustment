@@ -72,7 +72,12 @@ function createWrapper() {
   };
 }
 
-const defaultProps = {
+const defaultProps: {
+  shareToken: string;
+  userId: number;
+  googleCalendarScope: string | null;
+  isGoogleConnected: boolean;
+} = {
   shareToken: "abc123",
   userId: 42,
   googleCalendarScope: "calendar.freebusy.readonly",
