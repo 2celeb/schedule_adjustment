@@ -9,6 +9,7 @@ module Api
     # 通常の ApplicationController の認証（Cookie / X-User-Id）は使用せず、
     # BotAuthentication による Bearer トークン認証のみを使用する
     class BaseController < ActionController::API
+      include ErrorHandler
       include BotAuthentication
 
       before_action :authenticate_bot!

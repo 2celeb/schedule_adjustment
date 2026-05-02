@@ -19,11 +19,90 @@ const apiClient = axios.create({
 });
 
 /**
+ * localStorage が利用可能かどうかを判定する
+ * シークレットモードなどで利用不可の場合がある
+ */
+function isLocalStorageAvailable(): boolean {
+  try {
+    const testKey = "__storage_test__";
+    localStorage.setItem(testKey, "1");
+    localStorage.removeItem(testKey);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * インメモリストレージ（localStorage 利用不可時のフォールバック）
+ */
+const inMemoryStorage: Record<string, string> = {};
+
+/** localStorage が利用可能かどうかのキャッシュ */
+let localStorageAvailable: boolean | null = null;
+
+/**
+ * ストレージから値を取得する
+ * localStorage が利用不可の場合はインメモリストレージを使用する
+ */
+export function getStorageItem(key: string): string | null {
+  if (localStorageAvailable === null) {
+    localStorageAvailable = isLocalStorageAvailable();
+  }
+
+  if (localStorageAvailable) {
+    return localStorage.getItem(key);
+  }
+  return inMemoryStorage[key] ?? null;
+}
+
+/**
+ * ストレージに値を保存する
+ * localStorage が利用不可の場合はインメモリストレージを使用する
+ */
+export function setStorageItem(key: string, value: string): void {
+  if (localStorageAvailable === null) {
+    localStorageAvailable = isLocalStorageAvailable();
+  }
+
+  if (localStorageAvailable) {
+    localStorage.setItem(key, value);
+  } else {
+    inMemoryStorage[key] = value;
+  }
+}
+
+/**
+ * ストレージから値を削除する
+ */
+export function removeStorageItem(key: string): void {
+  if (localStorageAvailable === null) {
+    localStorageAvailable = isLocalStorageAvailable();
+  }
+
+  if (localStorageAvailable) {
+    localStorage.removeItem(key);
+  } else {
+    delete inMemoryStorage[key];
+  }
+}
+
+/**
+ * localStorage が利用可能かどうかを返す
+ */
+export function isStorageAvailable(): boolean {
+  if (localStorageAvailable === null) {
+    localStorageAvailable = isLocalStorageAvailable();
+  }
+  return localStorageAvailable;
+}
+
+/**
  * リクエストインターセプター
  * ゆるい識別用の X-User-Id ヘッダーを自動付与
  */
 apiClient.interceptors.request.use((config) => {
-  const userId = localStorage.getItem("selectedUserId");
+  const userId = getStorageItem("selectedUserId");
   if (userId) {
     config.headers["X-User-Id"] = userId;
   }
@@ -32,13 +111,11 @@ apiClient.interceptors.request.use((config) => {
 
 /**
  * レスポンスインターセプター
- * 共通エラーハンドリング
+ * エラーを再スローする（個別のハンドリングは useApiErrorHandler フックで行う）
  */
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // 401 の場合はセッション期限切れとして処理
-    // 各コンポーネントで個別にハンドリングするため、ここでは再スローのみ
     return Promise.reject(error);
   },
 );

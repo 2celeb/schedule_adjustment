@@ -4,6 +4,7 @@
 # API モードのため ActionController::API を継承
 class ApplicationController < ActionController::API
   include ActionController::Cookies
+  include ErrorHandler
   include SessionManagement
   include Authentication
 

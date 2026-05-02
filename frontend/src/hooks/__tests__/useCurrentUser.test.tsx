@@ -8,6 +8,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ToastProvider } from "@/components/feedback/ToastProvider";
 import apiClient from "@/api/client";
 
 /** apiClient をモック */
@@ -15,11 +16,16 @@ vi.mock("@/api/client", () => ({
   default: {
     get: vi.fn(),
   },
+  getStorageItem: (key: string) => localStorage.getItem(key),
+  setStorageItem: (key: string, value: string) =>
+    localStorage.setItem(key, value),
+  removeStorageItem: (key: string) => localStorage.removeItem(key),
+  isStorageAvailable: () => true,
 }));
 
 const mockedApiClient = vi.mocked(apiClient, true);
 
-/** テスト用の QueryClient ラッパー */
+/** テスト用の QueryClient ラッパー（ToastProvider 含む） */
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -31,7 +37,9 @@ function createWrapper() {
   });
   return function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>{children}</ToastProvider>
+      </QueryClientProvider>
     );
   };
 }
