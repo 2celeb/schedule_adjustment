@@ -14,7 +14,6 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import apiClient from "@/api/client";
 import {
-  getStorageItem,
   setStorageItem,
   isStorageAvailable,
 } from "@/api/client";

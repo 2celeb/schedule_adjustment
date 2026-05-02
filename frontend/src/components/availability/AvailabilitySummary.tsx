@@ -93,7 +93,6 @@ export function getHighlightTooltipKey(
 export default function AvailabilitySummary({
   summary,
   thresholdN,
-  totalMembers: _totalMembers,
 }: AvailabilitySummaryProps) {
   const { t } = useTranslation();
 
