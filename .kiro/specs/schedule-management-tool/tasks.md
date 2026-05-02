@@ -519,15 +519,15 @@
     - ネットワークオフライン検知時の「接続を確認してください」バナー
     - _要件: 設計ドキュメント セクション 7.5_
 
-- [ ] 22. インフラ・CI/CD の構築
-  - [ ] 22.1 本番用 Docker Compose の作成
+- [x] 22. インフラ・CI/CD の構築
+  - [x] 22.1 本番用 Docker Compose の作成
     - `docker-compose.prod.yml` を作成: Nginx（SSL終端 + 静的ファイル配信）、Rails API（Puma）、Sidekiq、Discord Bot、PostgreSQL、Redis
     - Let's Encrypt + certbot による SSL 証明書の自動取得・更新設定
     - Docker の restart policy 設定（自動復旧）
     - PostgreSQL のバックアップ設定（cron + pg_dump、7日分デイリー + 4週分ウィークリー）
     - _要件: doc/tech.md インフラセクション参照_
 
-  - [ ] 22.2 GitHub Actions CI/CD パイプラインの構築
+  - [x] 22.2 GitHub Actions CI/CD パイプラインの構築
     - `.github/workflows/ci.yml`: テスト実行（RSpec、Vitest、Jest）、Lint（RuboCop、ESLint、Prettier）、TypeScript 型チェック、Brakeman セキュリティスキャン
     - `.github/workflows/deploy.yml`: main ブランチ push 時に SSH 経由で ConoHa VPS にデプロイ（docker compose build → up -d → db:migrate）
     - _要件: doc/tech.md CI/CD セクション参照_

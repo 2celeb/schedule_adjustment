@@ -1,0 +1,36 @@
+# 本番環境用 Dockerfile（マルチステージビルド）
+# ステージ 1: ビルド
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+COPY . .
+RUN npm run build
+
+# ステージ 2: 本番イメージ
+FROM node:20-alpine
+
+# 非 root ユーザーで実行
+RUN addgroup -g 1000 botuser && \
+    adduser -u 1000 -G botuser -D botuser
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+# ビルド済み JS をコピー
+COPY --from=builder /app/dist ./dist
+
+RUN chown -R botuser:botuser /app
+
+USER botuser
+
+# ヘルスチェック（Bot の HTTP サーバー）
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD wget -q --spider http://localhost:3001/health || exit 1
+
+CMD ["node", "dist/index.js"]

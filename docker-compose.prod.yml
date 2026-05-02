@@ -1,0 +1,234 @@
+# 本番環境用 Docker Compose 設定
+# ConoHa VPS に全コンポーネントを同居させる構成
+#
+# 使用方法:
+#   1. cp .env.prod.example .env.prod && vim .env.prod
+#   2. ./scripts/init-ssl.sh  （初回のみ）
+#   3. docker compose -f docker-compose.prod.yml up -d
+
+services:
+  # ============================================================
+  # Nginx（リバースプロキシ + SSL 終端 + 静的ファイル配信）
+  # ============================================================
+  nginx:
+    image: nginx:1.25-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/templates/default.conf.template:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - frontend_build:/usr/share/nginx/html:ro
+    environment:
+      - SERVER_NAME=${SERVER_NAME}
+    # envsubst で SERVER_NAME を nginx.conf に展開
+    command: >
+      /bin/sh -c "
+        envsubst '$$SERVER_NAME' < /etc/nginx/templates/default.conf.template > /etc/nginx/nginx.conf &&
+        nginx -g 'daemon off;'
+      "
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend-build:
+        condition: service_completed_successfully
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # ============================================================
+  # certbot（SSL 証明書の自動更新）
+  # ============================================================
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    # 12 時間ごとに証明書の更新を試行
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done"
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ============================================================
+  # Rails API サーバー（Puma）
+  # ============================================================
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    environment:
+      - RAILS_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - RAILS_SECRET_KEY_BASE=${RAILS_SECRET_KEY_BASE}
+      - RAILS_LOG_TO_STDOUT=true
+      - RAILS_MAX_THREADS=5
+      - WEB_CONCURRENCY=2
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN}
+      - BOT_INTERNAL_URL=http://bot:3001
+      - ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=${ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY}
+      - ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=${ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY}
+      - ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=${ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # ============================================================
+  # Sidekiq ワーカー（バックグラウンドジョブ処理）
+  # ============================================================
+  sidekiq:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    environment:
+      - RAILS_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379/0}
+      - RAILS_SECRET_KEY_BASE=${RAILS_SECRET_KEY_BASE}
+      - RAILS_LOG_TO_STDOUT=true
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN}
+      - BOT_INTERNAL_URL=http://bot:3001
+      - ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY=${ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY}
+      - ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY=${ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY}
+      - ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT=${ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # ============================================================
+  # フロントエンドビルド（ビルド成果物を volume に出力）
+  # ============================================================
+  frontend-build:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-/api}
+        - VITE_ADSENSE_CLIENT_ID=${VITE_ADSENSE_CLIENT_ID:-}
+        - VITE_ADSENSE_DESKTOP_SLOT=${VITE_ADSENSE_DESKTOP_SLOT:-}
+        - VITE_ADSENSE_MOBILE_SLOT=${VITE_ADSENSE_MOBILE_SLOT:-}
+    volumes:
+      - frontend_build:/usr/share/nginx/html
+    # ビルド済みファイルを volume にコピーして終了
+    command: ["sh", "-c", "cp -r /usr/share/nginx/html/* /usr/share/nginx/html/ 2>/dev/null || true"]
+    restart: "no"
+
+  # ============================================================
+  # PostgreSQL 15 データベース
+  # ============================================================
+  db:
+    image: postgres:15-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-schedule_prod}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: always
+    # ポートは外部に公開しない（コンテナ間通信のみ）
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ============================================================
+  # Redis（Sidekiq ジョブキュー + キャッシュ）
+  # ============================================================
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: always
+    # ポートは外部に公開しない
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # ============================================================
+  # Discord Bot（Node.js）
+  # ============================================================
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile.prod
+    environment:
+      - NODE_ENV=production
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - API_BASE_URL=http://api:3000
+      - INTERNAL_API_TOKEN=${INTERNAL_API_TOKEN}
+      - BOT_HTTP_PORT=3001
+      - FRONTEND_URL=${FRONTEND_URL}
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  frontend_build:
+    driver: local

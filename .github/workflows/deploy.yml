@@ -1,0 +1,82 @@
+# デプロイパイプライン
+# main ブランチへの push 時に CI 成功後、ConoHa VPS に SSH 経由でデプロイ
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  # CI ジョブの完了を待つ
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  # ============================================================
+  # 本番環境へのデプロイ
+  # ============================================================
+  deploy:
+    name: "Deploy to Production"
+    runs-on: ubuntu-latest
+    needs: ci
+    environment: production
+
+    steps:
+      - name: SSH 経由でデプロイ
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -e
+            cd /opt/schedule-adjustment
+
+            echo "=== デプロイ開始: $(date) ==="
+
+            # 最新コードを取得
+            echo "--- git pull ---"
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Docker イメージをビルド
+            echo "--- docker compose build ---"
+            docker compose -f docker-compose.prod.yml build
+
+            # コンテナを更新（ダウンタイムを最小化）
+            echo "--- docker compose up -d ---"
+            docker compose -f docker-compose.prod.yml up -d
+
+            # DB マイグレーション（必要な場合のみ実行）
+            echo "--- db:migrate ---"
+            docker compose -f docker-compose.prod.yml exec -T api \
+              bundle exec rails db:migrate
+
+            # 古い Docker イメージを削除
+            echo "--- docker image prune ---"
+            docker image prune -f
+
+            echo "=== デプロイ完了: $(date) ==="
+
+      - name: ヘルスチェック
+        run: |
+          echo "ヘルスチェック: https://${{ secrets.VPS_HOST }}/api/health"
+          sleep 10
+          curl -sf "https://${{ secrets.SERVER_NAME }}/api/health" || echo "警告: ヘルスチェックに失敗しました。手動で確認してください。"
+
+      - name: デプロイ失敗時の通知
+        if: failure()
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          script: |
+            echo "デプロイ失敗: $(date)" >> /var/log/deploy-failures.log

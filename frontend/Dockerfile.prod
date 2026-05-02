@@ -1,0 +1,24 @@
+# 本番環境用 Dockerfile（マルチステージビルド）
+# ステージ 1: ビルド
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+COPY . .
+
+# 本番用ビルド（環境変数はビルド時に注入）
+ARG VITE_API_BASE_URL=/api
+ARG VITE_ADSENSE_CLIENT_ID
+ARG VITE_ADSENSE_DESKTOP_SLOT
+ARG VITE_ADSENSE_MOBILE_SLOT
+
+RUN npm run build
+
+# ステージ 2: ビルド成果物のみ出力
+# Nginx コンテナにコピーするため、dist ディレクトリのみ保持
+FROM alpine:3.19
+
+COPY --from=builder /app/dist /usr/share/nginx/html

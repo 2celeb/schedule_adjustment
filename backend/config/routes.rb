@@ -4,6 +4,7 @@ require "sidekiq/cron/web"
 Rails.application.routes.draw do
   # ヘルスチェック
   get "up", to: proc { [200, {}, ["OK"]] }
+  get "api/health", to: proc { [200, { "Content-Type" => "application/json" }, ['{"status":"ok"}']] }
 
   # Sidekiq 管理画面（開発環境のみ）
   if Rails.env.development?
